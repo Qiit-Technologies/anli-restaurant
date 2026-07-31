@@ -30,7 +30,7 @@ import {
     Menu,
 } from '@/services/restaurant.service';
 import { customerAuthService } from '@/services/customerAuth.service';
-import { trackEvent } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import CustomerHeader from './CustomerHeader';
 import toast from 'react-hot-toast';
 
@@ -117,7 +117,7 @@ export default function RestaurantDetail({
 
     useEffect(() => {
         if (!loading && restaurant) {
-            trackEvent('restaurant_detail_viewed', {
+            analytics.track('restaurant_detail_viewed', {
                 restaurant_id: restaurant.id,
                 restaurant_name: restaurant.name,
                 restaurant_address: restaurant.address,
@@ -126,7 +126,7 @@ export default function RestaurantDetail({
     }, [loading, restaurant]);
 
     const handleBookingClick = (path: string) => {
-        trackEvent('booking_started', {
+        analytics.track('booking_started', {
             restaurant_id: id,
             restaurant_name: restaurant?.name,
             booking_path: path,
@@ -138,7 +138,7 @@ export default function RestaurantDetail({
         const user = customerAuthService.getUser();
         if (!user) {
             toast.error('Please log in to favorite restaurants');
-            trackEvent('favorite_click', {
+            analytics.track('favorite_click', {
                 restaurant_id: id,
                 restaurant_name: restaurant?.name,
                 action: 'login_required',
@@ -155,7 +155,7 @@ export default function RestaurantDetail({
             toast.success(
                 previousFavorite ? 'Removed from favorites' : 'Added to favorites',
             );
-            trackEvent('favorite_toggled', {
+            analytics.track('favorite_toggled', {
                 restaurant_id: id,
                 restaurant_name: restaurant?.name,
                 action: previousFavorite ? 'removed' : 'added',
@@ -163,7 +163,7 @@ export default function RestaurantDetail({
         } catch (err) {
             setIsFavorite(previousFavorite);
             toast.error('Failed to update favorites');
-            trackEvent('favorite_error', {
+            analytics.track('favorite_error', {
                 restaurant_id: id,
                 restaurant_name: restaurant?.name,
                 error: err instanceof Error ? err.message : 'unknown',

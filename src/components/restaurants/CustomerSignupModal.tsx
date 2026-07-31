@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { customerAuthService } from '@/services/customerAuth.service';
-import { trackEvent, identifyUser } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import { toast } from 'react-hot-toast';
 
 const signupSchema = z.object({
@@ -75,7 +75,7 @@ export default function CustomerSignupModal({
                 phoneNumber: fullPhone,
             });
             setView('OTP');
-            trackEvent('signup_initiated', {
+            analytics.track('signup_initiated', {
                 email: data.email,
                 first_name: data.firstName,
                 last_name: data.lastName,
@@ -84,7 +84,7 @@ export default function CustomerSignupModal({
         } catch (error: any) {
             const errorMessage = typeof error === 'string' ? error : error?.message || 'Registration failed';
             toast.error(errorMessage);
-            trackEvent('signup_failed', {
+            analytics.track('signup_failed', {
                 email: data.email,
                 error: errorMessage,
             });
@@ -99,12 +99,13 @@ export default function CustomerSignupModal({
             const email = signupForm.getValues('email');
             const response = await customerAuthService.verifyOtp(email, data.otp);
             toast.success('Successfully authenticated');
-            trackEvent('signup_success', {
+            analytics.track('signup_success', {
                 email,
                 user_id: response.id,
             });
             if (response.id) {
-                identifyUser(String(response.id), {
+                analytics.identify(String(response.id));
+                analytics.people.set({
                     email,
                     first_name: response.firstName,
                     last_name: response.lastName,
@@ -115,7 +116,7 @@ export default function CustomerSignupModal({
         } catch (error: any) {
             const errorMessage = typeof error === 'string' ? error : error?.message || 'Invalid OTP';
             toast.error(errorMessage);
-            trackEvent('signup_otp_failed', {
+            analytics.track('signup_otp_failed', {
                 email,
                 error: errorMessage,
             });

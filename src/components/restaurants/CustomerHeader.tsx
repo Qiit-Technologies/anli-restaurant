@@ -16,7 +16,7 @@ import {
     customerAuthService,
     CustomerUser,
 } from '@/services/customerAuth.service';
-import { trackEvent, identifyUser, resetMixpanel } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import CustomerLoginModal from './CustomerLoginModal';
 import CustomerSignupModal from './CustomerSignupModal';
 import LocationModal from './LocationModal';
@@ -57,7 +57,8 @@ export default function CustomerHeader({
         const loadedUser = customerAuthService.getUser();
         setUser(loadedUser);
         if (loadedUser?.id) {
-            identifyUser(loadedUser.id, {
+            analytics.identify(loadedUser.id);
+            analytics.people.set({
                 email: loadedUser.email,
                 first_name: loadedUser.firstName,
                 last_name: loadedUser.lastName,
@@ -69,9 +70,9 @@ export default function CustomerHeader({
     const handleLogout = () => {
         customerAuthService.logout();
         setUser(null);
-        resetMixpanel();
+        analytics.reset();
         toast.success('Logged out successfully');
-        trackEvent('logout', {
+        analytics.track('logout', {
             user_id: user?.id,
         });
 
@@ -125,7 +126,7 @@ export default function CustomerHeader({
                     <div className="flex items-center gap-3 md:gap-5">
                         <button
                             onClick={() => {
-                                trackEvent('search_clicked', {
+                                analytics.track('search_clicked', {
                                     source: 'header',
                                 });
                                 if (onSearchClick) {
@@ -143,7 +144,7 @@ export default function CustomerHeader({
 
                         <button
                             onClick={() => {
-                                trackEvent('location_modal_opened', {
+                                analytics.track('location_modal_opened', {
                                     source: 'header',
                                 });
                                 setIsLocationModalOpen(true);

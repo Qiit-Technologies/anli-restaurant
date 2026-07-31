@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { Restaurant } from '@/services/restaurant.service';
 import SearchEmptyIllustration from './SearchEmptyIllustration';
 import Footer from './Footer';
-import { trackEvent } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 
 interface RestaurantSearchViewProps {
     searchQuery: string;
@@ -91,7 +91,7 @@ export default function RestaurantSearchView({
     const hasQuery = searchQuery.trim().length > 0;
 
     const handleRecentClick = (term: string) => {
-        trackEvent('recent_search_clicked', {
+        analytics.track('recent_search_clicked', {
             search_term: term,
         });
         onSearchChange(term);
@@ -166,7 +166,7 @@ export default function RestaurantSearchView({
                                             onClick={() => {
                                                 setPriceFilter(range);
                                                 setIsPriceDropdownOpen(false);
-                                                trackEvent('filter_applied', {
+                                                analytics.track('filter_applied', {
                                                     filter_type: 'price',
                                                     filter_value: range,
                                                 });
@@ -223,7 +223,7 @@ export default function RestaurantSearchView({
                                         onClick={() => {
                                             setPriceFilter(`₦${minPrice} - ₦${maxPrice}`);
                                             setIsCustomPriceOpen(false);
-                                            trackEvent('filter_applied', {
+                                            analytics.track('filter_applied', {
                                                 filter_type: 'price_custom',
                                                 filter_value: `₦${minPrice} - ₦${maxPrice}`,
                                             });
@@ -259,7 +259,7 @@ export default function RestaurantSearchView({
                                             onClick={() => {
                                                 setCuisineFilter(c);
                                                 setIsCuisineDropdownOpen(false);
-                                                trackEvent('filter_applied', {
+                                                analytics.track('filter_applied', {
                                                     filter_type: 'cuisine',
                                                     filter_value: c,
                                                 });
@@ -303,7 +303,7 @@ export default function RestaurantSearchView({
                                         onClick={() => {
                                             setSortBy(opt);
                                             setIsSortDropdownOpen(false);
-                                            trackEvent('sort_applied', {
+                                            analytics.track('sort_applied', {
                                                 sort_by: opt,
                                             });
                                         }}

@@ -1,127 +1,114 @@
 import mixpanel from 'mixpanel-browser';
+import { customerAuthService } from '@/services/customerAuth.service';
 
 const MIXPANEL_TOKEN = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || '';
-const MIXPANEL_TRACK_ENDPOINT = 'https://api.mixpanel.com/track';
 
-function isMixpanelAvailable(): boolean {
-    if (typeof window === 'undefined') return false;
-    try {
-        return !!window.mixpanel && typeof window.mixpanel.track === 'function';
-    } catch {
-        return false;
-    }
+if (MIXPANEL_TOKEN && typeof window !== 'undefined') {
+  mixpanel.init(MIXPANEL_TOKEN, {
+    debug: process.env.NODE_ENV === 'development',
+    track_pageview: true,
+    persistence: 'localStorage',
+    api_host: 'https://api.mixpanel.com',
+    cross_site_cookie: false,
+    secure_cookie: true,
+    ip: false,
+    property_blacklist: ['$current_url', '$initial_referrer', '$referrer'],
+  });
 }
 
-export function initMixpanel() {
-    if (typeof window === 'undefined' || !MIXPANEL_TOKEN) {
-        return;
-    }
-    try {
-        mixpanel.init(MIXPANEL_TOKEN, {
-            debug: process.env.NODE_ENV === 'development',
-            track_pageview: true,
-            persistence: 'localStorage',
-        });
-    } catch (error) {
-        console.error('Mixpanel init error:', error);
-    }
-}
+const getCurrentUserId = (): string | null => {
+  if (typeof window === 'undefined') return null;
 
-async function httpTrack(
-    eventName: string,
-    properties?: Record<string, unknown>,
-): Promise<void> {
-    if (typeof window === 'undefined' || !MIXPANEL_TOKEN) return;
+  try {
+    const user = customerAuthService.getUser();
+    return user?.id ? String(user.id) : null;
+  } catch {
+    return null;
+  }
+};
 
-    try {
-        const payload = {
-            event: eventName,
-            properties: {
-                token: MIXPANEL_TOKEN,
-                distinct_id: properties?.distinct_id || 'anonymous',
-                time: Date.now(),
-                ...properties,
-            },
-        };
+export const analytics = {
+  track: (eventName: string, properties?: Record<string, unknown>) => {
+    if (!MIXPANEL_TOKEN) return;
+    const userId = getCurrentUserId();
+    mixpanel.track(eventName, {
+      ...properties,
+      ...(userId && { user_id: userId }),
+    });
+  },
 
-        const params = new URLSearchParams();
-        params.append('data', JSON.stringify(payload));
+  identify: (userId: string) => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.identify(userId);
+  },
 
-        await fetch(MIXPANEL_TRACK_ENDPOINT, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params.toString(),
-        });
-    } catch (error) {
-        console.error('Mixpanel HTTP track error:', error);
-    }
-}
+  people: {
+    set: (properties: Record<string, unknown>) => {
+      if (!MIXPANEL_TOKEN) return;
+      mixpanel.people.set(properties);
+    },
+    setOnce: (properties: Record<string, unknown>) => {
+      if (!MIXPANEL_TOKEN) return;
+      mixpanel.people.set_once(properties);
+    },
+    increment: (property: string, value: number = 1) => {
+      if (!MIXPANEL_TOKEN) return;
+      mixpanel.people.increment(property, value);
+    },
+  },
 
-export async function trackEvent(eventName: string, properties?: Record<string, unknown>) {
-    if (typeof window === 'undefined') {
-        return;
-    }
+  alias: (alias: string) => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.alias(alias);
+  },
 
-    if (isMixpanelAvailable()) {
-        try {
-            mixpanel.track(eventName, properties);
-            return;
-        } catch (error) {
-            console.error('Mixpanel SDK track error, falling back to HTTP:', error);
-        }
-    }
+  reset: () => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.reset();
+  },
 
-    await httpTrack(eventName, properties);
-}
+  trackPageView: (pageName: string, properties?: Record<string, unknown>) => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.track('Page View', {
+      page: pageName,
+      ...properties,
+    });
+  },
 
-export async function identifyUser(userId: string, userProperties?: Record<string, unknown>) {
-    if (typeof window === 'undefined') {
-        return;
-    }
+  registerSuperProperties: (properties: Record<string, unknown>) => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.register(properties);
+  },
 
-    if (isMixpanelAvailable()) {
-        try {
-            mixpanel.identify(userId);
-            if (userProperties) {
-                mixpanel.people.set(userProperties);
-            }
-        } catch (error) {
-            console.error('Mixpanel SDK identify error, falling back:', error);
-        }
-    }
-}
+  unregisterSuperProperty: (property: string) => {
+    if (!MIXPANEL_TOKEN) return;
+    mixpanel.unregister(property);
+  },
+};
 
-export function resetMixpanel() {
-    if (typeof window === 'undefined') {
-        return;
-    }
-    try {
-        if (isMixpanelAvailable()) {
-            mixpanel.reset();
-        }
-    } catch (error) {
-        console.error('Mixpanel reset error:', error);
-    }
-}
+export const EVENTS = {
+  PAGE_VIEW: 'Page View',
+  SEARCH_PERFORMED: 'Search Performed',
+  SEARCH_SUBMITTED: 'Search Submitted',
+  SEARCH_CLOSED: 'Search Closed',
+  RECENT_SEARCH_CLICKED: 'Recent Search Clicked',
+  FILTER_APPLIED: 'Filter Applied',
+  SORT_APPLIED: 'Sort Applied',
+  RESTAURANT_CLICKED: 'Restaurant Clicked',
+  RESTAURANT_DETAIL_VIEWED: 'Restaurant Detail Viewed',
+  BOOKING_STARTED: 'Booking Started',
+  BOOKING_CREATED: 'Booking Created',
+  BOOKING_FAILED: 'Booking Failed',
+  FAVORITE_TOGGLED: 'Favorite Toggled',
+  FAVORITE_CLICK: 'Favorite Click',
+  LOGIN_SUCCESS: 'Login Success',
+  LOGIN_FAILED: 'Login Failed',
+  SIGNUP_INITIATED: 'Signup Initiated',
+  SIGNUP_SUCCESS: 'Signup Success',
+  SIGNUP_OTP_FAILED: 'Signup OTP Failed',
+  LOGOUT: 'Logout',
+  LOCATION_CHANGED: 'Location Changed',
+  BOOKINGS_PAGE_VIEWED: 'Bookings Page Viewed',
+} as const;
 
-export function setUserProperties(properties: Record<string, unknown>) {
-    if (typeof window === 'undefined') {
-        return;
-    }
-    try {
-        if (isMixpanelAvailable()) {
-            mixpanel.people.set(properties);
-        }
-    } catch (error) {
-        console.error('Mixpanel setUserProperties error:', error);
-    }
-}
-
-declare global {
-    interface Window {
-        mixpanel: any;
-    }
-}
+export default analytics;

@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initMixpanel } from '@/lib/mixpanel';
 
 export default function MixpanelInit() {
     useEffect(() => {
-        initMixpanel();
+        // Mixpanel is initialized at module load in src/lib/mixpanel.ts
     }, []);
 
     return null;

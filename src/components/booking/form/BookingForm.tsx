@@ -11,7 +11,7 @@ import {
     createPublicBooking,
 } from '@/app/actions/booking';
 import BookingStepProgress from '@/components/booking/BookingStepProgress';
-import { trackEvent } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import toast from 'react-hot-toast';
 import { bookingFormSchema, BookingFormData } from './schemas';
 import dayjs from 'dayjs';
@@ -461,7 +461,7 @@ export default function BookingForm({
 
         if (!result.success || !result.data) {
             toast.error(result.message || 'Failed to create booking');
-            trackEvent('booking_failed', {
+            analytics.track('booking_failed', {
                 hotel_id: hotelId,
                 error: result.message || 'unknown',
             });
@@ -471,7 +471,7 @@ export default function BookingForm({
         toast.success('Reservation created successfully!');
         setIsPaymentModalOpen(false);
 
-        trackEvent('booking_created', {
+        analytics.track('booking_created', {
             hotel_id: hotelId,
             booking_codes: result.data.bookingCodes || (result.data.bookingCode ? [result.data.bookingCode] : []),
             total_amount: result.data.totalBookingAmount,

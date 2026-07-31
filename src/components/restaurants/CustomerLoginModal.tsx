@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { customerAuthService } from '@/services/customerAuth.service';
-import { trackEvent, identifyUser } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import { toast } from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -42,12 +42,13 @@ export default function CustomerLoginModal({
         try {
             const response = await customerAuthService.login(data.email, data.password);
             toast.success('Login successful');
-            trackEvent('login_success', {
+            analytics.track('login_success', {
                 email: data.email,
                 user_id: response.id,
             });
             if (response.id) {
-                identifyUser(String(response.id), {
+                analytics.identify(String(response.id));
+                analytics.people.set({
                     email: data.email,
                     first_name: response.firstName,
                     last_name: response.lastName,
@@ -58,7 +59,7 @@ export default function CustomerLoginModal({
         } catch (error: any) {
             const errorMessage = typeof error === 'string' ? error : error?.message || 'Login failed';
             toast.error(errorMessage);
-            trackEvent('login_failed', {
+            analytics.track('login_failed', {
                 email: data.email,
                 error: errorMessage,
             });

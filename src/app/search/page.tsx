@@ -6,7 +6,7 @@ import CustomerHeader from '@/components/restaurants/CustomerHeader';
 import RestaurantSearchView from '@/components/restaurants/RestaurantSearchView';
 import { restaurantService, Restaurant } from '@/services/restaurant.service';
 import { customerAuthService } from '@/services/customerAuth.service';
-import { trackEvent } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import toast from 'react-hot-toast';
 
 function SearchPageContent() {
@@ -37,7 +37,7 @@ function SearchPageContent() {
                     setFavorites(favs.map((f: any) => f.id));
                 }
 
-                trackEvent('search_page_viewed', {
+                analytics.track('search_page_viewed', {
                     initial_query: initialQuery,
                     nearby_count: nearby.length,
                     featured_count: featured.length,
@@ -62,7 +62,7 @@ function SearchPageContent() {
                 const res = await restaurantService.search(searchQuery.trim(), undefined, 1, 20);
                 if (!cancelled) {
                     setRestaurants(res.restaurants);
-                    trackEvent('search_performed', {
+                    analytics.track('search_performed', {
                         query: searchQuery.trim(),
                         results_count: res.restaurants.length,
                         total: res.total,
@@ -78,7 +78,7 @@ function SearchPageContent() {
                             r.address?.toLowerCase().includes(query)
                     );
                     setRestaurants(filtered);
-                    trackEvent('search_performed', {
+                    analytics.track('search_performed', {
                         query: searchQuery.trim(),
                         results_count: filtered.length,
                         fallback: true,
@@ -110,7 +110,7 @@ function SearchPageContent() {
                             setSearchQuery(q);
                         }}
                         onCloseSearch={() => {
-                            trackEvent('search_closed', {
+                            analytics.track('search_closed', {
                                 search_query: searchQuery,
                             });
                             router.push('/');
@@ -127,7 +127,7 @@ function SearchPageContent() {
                                 setFavorites((prev) =>
                                     prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
                                 );
-                                trackEvent('favorite_toggled', {
+                                analytics.track('favorite_toggled', {
                                     restaurant_id: id,
                                     action: prev.includes(id) ? 'removed' : 'added',
                                     source: 'search_page',

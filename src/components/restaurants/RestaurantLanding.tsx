@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { restaurantService, Restaurant } from '@/services/restaurant.service';
 import { customerAuthService } from '@/services/customerAuth.service';
-import { trackEvent, identifyUser, resetMixpanel } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import CustomerHeader from './CustomerHeader';
 import LocationModal from './LocationModal';
 import RestaurantSearchView from './RestaurantSearchView';
@@ -223,7 +223,7 @@ export default function RestaurantLanding() {
 
     useEffect(() => {
         if (!loading && restaurants.length > 0) {
-            trackEvent('page_view', {
+            analytics.track('page_view', {
                 page_name: 'restaurant_landing',
                 restaurant_count: restaurants.length,
                 nearby_count: nearbyRestaurants.length,
@@ -239,7 +239,7 @@ export default function RestaurantLanding() {
                 onSearchClick={() => setIsSearchMode(true)}
                 onLocationChange={async (newLoc, lat, lng) => {
                     setLocationName(newLoc);
-                    trackEvent('location_changed', {
+                    analytics.track('location_changed', {
                         location: newLoc,
                         latitude: lat,
                         longitude: lng,
@@ -314,7 +314,7 @@ export default function RestaurantLanding() {
                                             e.preventDefault();
                                             if (searchQuery.trim()) {
                                                 setShowAutocomplete(false);
-                                                trackEvent('search_submitted', {
+                                                analytics.track('search_submitted', {
                                                     search_query: searchQuery.trim(),
                                                 });
                                                 router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -389,7 +389,7 @@ export default function RestaurantLanding() {
                                                                 type="button"
                                                                 onClick={() => {
                                                                     setShowAutocomplete(false);
-                                                                    trackEvent('restaurant_clicked', {
+                                                                    analytics.track('restaurant_clicked', {
                                                                         restaurant_id: res.id,
                                                                         restaurant_name: res.name,
                                                                         source: 'autocomplete',
@@ -588,7 +588,7 @@ export default function RestaurantLanding() {
                                                         type="button"
                                                                 onClick={() => {
                                                                     setShowAutocomplete(false);
-                                                                    trackEvent('restaurant_clicked', {
+                                                                    analytics.track('restaurant_clicked', {
                                                                         restaurant_id: res.id,
                                                                         restaurant_name: res.name,
                                                                         source: 'search_results',
@@ -860,7 +860,7 @@ function RestaurantCard({
         const user = customerAuthService.getUser();
         if (!user) {
             toast.error('Please login to favorite restaurants');
-            trackEvent('favorite_click', {
+            analytics.track('favorite_click', {
                 restaurant_id: restaurant.id,
                 restaurant_name: restaurant.name,
                 action: 'login_required',
@@ -877,7 +877,7 @@ function RestaurantCard({
             toast.success(
                 previousFavorite ? 'Removed from favorites' : 'Added to favorites',
             );
-            trackEvent('favorite_toggled', {
+            analytics.track('favorite_toggled', {
                 restaurant_id: restaurant.id,
                 restaurant_name: restaurant.name,
                 action: previousFavorite ? 'removed' : 'added',
@@ -885,7 +885,7 @@ function RestaurantCard({
         } catch (err) {
             setIsFavorite(previousFavorite);
             toast.error('Failed to update favorites');
-            trackEvent('favorite_error', {
+            analytics.track('favorite_error', {
                 restaurant_id: restaurant.id,
                 restaurant_name: restaurant.name,
                 error: err instanceof Error ? err.message : 'unknown',

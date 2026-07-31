@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { restaurantService } from '@/services/restaurant.service';
 import { customerAuthService, CustomerUser } from '@/services/customerAuth.service';
-import { trackEvent } from '@/lib/mixpanel';
+import { analytics } from '@/lib/mixpanel';
 import CustomerHeader from './CustomerHeader';
 
 type BookingTab = 'upcoming' | 'past' | 'favorites';
@@ -77,7 +77,7 @@ export default function CustomerBookings() {
 
     useEffect(() => {
         if (!loading) {
-            trackEvent('bookings_page_viewed', {
+            analytics.track('bookings_page_viewed', {
                 bookings_count: bookings.length,
                 favorites_count: favorites.length,
                 active_tab: activeTab,
