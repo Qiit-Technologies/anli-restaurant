@@ -86,8 +86,62 @@ export const restaurantService = {
     getDetails: async (id: number): Promise<Restaurant> => {
         try {
             const response = await api.get(`/hotels/hotel/${id}`);
-            return response.data;
+            const data = response.data;
+            if (!data || !data.id) {
+                throw new Error('Restaurant not found');
+            }
+            return data;
         } catch (error: any) {
+            const status = error?.response?.status;
+            if (status === 404 || (!status && error?.message === 'Restaurant not found')) {
+                try {
+                    const scrapedResponse = await api.get(`/hotels/scraped-restaurants/${id}`);
+                    const scrapedData = scrapedResponse.data;
+                    if (!scrapedData || !scrapedData.id) {
+                        throw new Error('Restaurant not found');
+                    }
+                    return {
+                        id: scrapedData.id,
+                        name: scrapedData.name || 'Unnamed Restaurant',
+                        address: scrapedData.address || '',
+                        coverImage: scrapedData.coverImage || '',
+                        images: scrapedData.images?.length ? scrapedData.images : scrapedData.coverImage ? [scrapedData.coverImage] : [],
+                        rating: Number(scrapedData.rating ?? 4),
+                        ratingCount: Number(scrapedData.ratingCount ?? 0),
+                        tags: scrapedData.tags || 'Restaurant',
+                        displayHours: scrapedData.displayHours || 'Hours not available',
+                        isBookable: scrapedData.isBookable ?? false,
+                        headline: scrapedData.headline,
+                        description: scrapedData.description,
+                        amenities: scrapedData.amenities,
+                        website: scrapedData.website,
+                        contactEmail: scrapedData.contactEmail,
+                        contactPhone: scrapedData.contactPhone,
+                        twitterUrl: scrapedData.twitterUrl,
+                        linkedinUrl: scrapedData.linkedinUrl,
+                        instagramUrl: scrapedData.instagramUrl,
+                        facebookUrl: scrapedData.facebookUrl,
+                        city: scrapedData.city,
+                        neighborhood: scrapedData.neighborhood,
+                        weekdayHours: scrapedData.weekdayHours,
+                        weekendHours: scrapedData.weekendHours,
+                        closeTime: scrapedData.closeTime,
+                        priceLevel: scrapedData.priceLevel,
+                        averageCostForTwo: scrapedData.averageCostForTwo,
+                        promoTitle: scrapedData.promoTitle,
+                        promoDescription: scrapedData.promoDescription,
+                        whyDinersLoveUs: scrapedData.whyDinersLoveUs,
+                        serviceTypes: scrapedData.serviceTypes,
+                        dietaryPreferences: scrapedData.dietaryPreferences,
+                    };
+                } catch (scrapedError: any) {
+                    const scrapedStatus = scrapedError?.response?.status;
+                    if (scrapedStatus === 404 || scrapedError?.message === 'Restaurant not found') {
+                        throw new Error('Restaurant not found');
+                    }
+                    throw scrapedError?.response?.data || scrapedError?.message || 'Failed to load restaurant details';
+                }
+            }
             throw error.response?.data || error.message;
         }
     },

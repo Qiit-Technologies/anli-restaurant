@@ -104,7 +104,7 @@ export default function RestaurantsCarousel({
                     {displayItems.map((item, idx) => {
                         const itemId = item.id || idx;
                         const isFav = localFavs[itemId] ?? favorites.includes(itemId);
-                        const href = item.id ? `/${item.id}` : '#';
+                        const href = item.id ? `/restaurants/${item.id}` : '#';
 
                         return (
                             <div

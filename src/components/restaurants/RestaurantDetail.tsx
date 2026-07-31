@@ -70,8 +70,7 @@ export default function RestaurantDetail({
     }, [slideImages]);
     const hotelNameSlug =
         hotelName ||
-        restaurant?.name
-            .toString()
+        (restaurant?.name?.toString() || 'restaurant')
             .toLowerCase()
             .trim()
             .replace(/\s+/g, '-')
@@ -98,12 +97,14 @@ export default function RestaurantDetail({
         const fetchData = async () => {
             try {
                 const restaurantId = Number(id);
-                const [restaurantData, menuData] = await Promise.all([
-                    restaurantService.getDetails(restaurantId),
-                    restaurantService.getMenu(restaurantId),
-                ]);
+                const restaurantData = await restaurantService.getDetails(restaurantId);
                 setRestaurant(restaurantData);
-                setMenu(menuData);
+                try {
+                    const menuData = await restaurantService.getMenu(restaurantId);
+                    setMenu(menuData);
+                } catch {
+                    setMenu([]);
+                }
             } catch (error) {
                 console.error('Error fetching restaurant details:', error);
             } finally {
@@ -210,11 +211,13 @@ export default function RestaurantDetail({
 
     // Dynamic contact info extraction checking backend property variants
     const phone =
-        (restaurant as any).owner.phoneNumber ||
+        (restaurant as any).contactPhone ||
+        (restaurant as any).owner?.phoneNumber ||
         '+234 6098 890 768';
 
     const email =
-        (restaurant as any).owner.email ||
+        (restaurant as any).contactEmail ||
+        (restaurant as any).owner?.email ||
         `ujua1@gmail.com`;
 
     const openHours =
@@ -250,10 +253,16 @@ export default function RestaurantDetail({
 
     return (
         <div className="min-h-screen bg-[#FFFDF9] text-[#1A1A1A]">
-            {/* 1. Header Navigation Bar */}
-            <CustomerHeader showBackButton={false} />
+            {loading || !restaurant ? (
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <Loader2 className="h-8 w-8 animate-spin text-hexbrand" />
+                </div>
+            ) : (
+                <>
+                    {/* 1. Header Navigation Bar */}
+                    <CustomerHeader showBackButton={false} />
 
-            <main className="pt-16">
+                    <main className="pt-16">
                 {/* 2. Split Hero Banner Section */}
                 <section className="relative w-full bg-[#1E140E] overflow-hidden">
                     <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
@@ -312,7 +321,7 @@ export default function RestaurantDetail({
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            handleBookingClick(`/${hotelNameSlug}/${id}/reservation`)
+                                            handleBookingClick(`/restaurants/${hotelNameSlug}/${id}/reservation`)
                                         }
                                         className="px-6 py-2.5 bg-[#0085FF] hover:bg-blue-600 text-white font-bold text-xs md:text-sm rounded-lg shadow-md transition-all active:scale-95"
                                     >
@@ -456,7 +465,7 @@ export default function RestaurantDetail({
                                         {restaurant.name} Menu
                                     </h3>
                                     <Link
-                                        href={`/${id}/menu`}
+                                        href={`/restaurants/${id}/menu`}
                                         className="text-orange-600 hover:text-orange-700 text-xs md:text-sm font-bold flex items-center gap-1 hover:underline"
                                     >
                                         Full Menu <ChevronRight size={16} />
@@ -646,6 +655,8 @@ export default function RestaurantDetail({
                     </div>
                 </div>
             </main>
-        </div>
+        </>
+        )}
+    </div>
     );
 }

@@ -394,7 +394,7 @@ export default function RestaurantLanding() {
                                                                         restaurant_name: res.name,
                                                                         source: 'autocomplete',
                                                                     });
-                                                                    router.push(`/${res.id}`);
+                                                                    router.push(`/restaurants/${res.id}`);
                                                                 }}
                                                                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors text-left group"
                                                             >
@@ -593,7 +593,7 @@ export default function RestaurantLanding() {
                                                                         restaurant_name: res.name,
                                                                         source: 'search_results',
                                                                     });
-                                                                     router.push(`/${res.id}`);
+                                                                    router.push(`/restaurants/${res.id}`);
                                                                 }}
                                                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors text-left"
                                                     >
@@ -923,28 +923,17 @@ function RestaurantCard({
             className={`group rounded-[24px] overflow-hidden border transition-all duration-300 hover:shadow-xl ${dark ? 'bg-[#2A2A2A] border-white/10' : 'bg-white border-[#FFF5E9]'}`}
         >
             <div className="relative h-48 overflow-hidden group/slider">
-                {restaurant.isBookable !== false ? (
-                    <Link
-                        href={`/${restaurant.id}`}
-                        className="block h-full w-full relative"
-                    >
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            alt={restaurant.name}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                    </Link>
-                ) : (
-                    <div className="block h-full w-full relative">
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            alt={restaurant.name}
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-                )}
+                <Link
+                    href={`/restaurants/${restaurant.id}`}
+                    className="block h-full w-full relative"
+                >
+                    <Image
+                        src={imagesList[currentImageIndex]}
+                        alt={restaurant.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                </Link>
 
                 {/* Navigation Arrows & Dots */}
                 {imagesList.length > 1 && (
@@ -999,46 +988,7 @@ function RestaurantCard({
                 </button>
             </div>
 
-            {restaurant.isBookable !== false ? (
-                <Link href={`/${restaurant.id}`}>
-                    <div
-                        className={`p-4 ${dark ? 'bg-[#2A2A2A]' : 'bg-[#FFFBFA]'}`}
-                    >
-                        <div className="flex justify-between items-center mb-2">
-                            <h3
-                                className={`text-lg font-bold ${dark ? 'text-white' : 'text-[#3D2117]'}`}
-                            >
-                                {restaurant.name}
-                            </h3>
-                            <div className="flex items-center bg-orange-50 px-2 py-1 rounded-[24px]">
-                                <Star
-                                    size={14}
-                                    className="text-orange-500 fill-orange-500"
-                                />
-                                <span className="text-[10px] font-bold ml-1 text-[#6B4226]">
-                                    {restaurant.rating || '4.8'}/5
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <Utensils size={12} />
-                                <span className="text-[9px] font-medium">
-                                    {restaurant.tags || 'Japanese, Sushi . $$$'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <Clock size={12} />
-                                <span className="text-[9px] font-medium">
-                                    {restaurant.displayHours ||
-                                        '10:00 am - 11:00 pm'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </Link>
-            ) : (
+            <Link href={`/restaurants/${restaurant.id}`}>
                 <div
                     className={`p-4 ${dark ? 'bg-[#2A2A2A]' : 'bg-[#FFFBFA]'}`}
                 >
@@ -1075,22 +1025,25 @@ function RestaurantCard({
                         </div>
                     </div>
                 </div>
-            )}
+            </Link>
 
             <div
                 className={`px-4 py-4 border-t ${dark ? 'border-white/10 bg-[#2A2A2A]' : 'border-gray-100 bg-white'}`}
             >
                 {restaurant.isBookable !== false ? (
                     <Link
-                        href={`/${hotelNameSlug}/${restaurant.id}/reservation`}
+                        href={`/restaurants/${hotelNameSlug}/${restaurant.id}/reservation`}
                         className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block"
                     >
                         Book Reservation
                     </Link>
                 ) : (
-                    <span className="text-gray-400 font-bold text-sm inline-block">
-                        View Only
-                    </span>
+                    <Link
+                        href={`/restaurants/${hotelNameSlug}/${restaurant.id}`}
+                        className="text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors inline-block"
+                    >
+                        View Details
+                    </Link>
                 )}
             </div>
         </div>
