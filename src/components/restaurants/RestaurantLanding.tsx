@@ -24,6 +24,8 @@ import { analytics } from '@/lib/mixpanel';
 import CustomerHeader from './CustomerHeader';
 import LocationModal from './LocationModal';
 import RestaurantSearchView from './RestaurantSearchView';
+import RestaurantSearchBar from './RestaurantSearchBar';
+import FilterBar from './FilterBar';
 import Footer from './Footer';
 import toast from 'react-hot-toast';
 
@@ -122,8 +124,39 @@ export default function RestaurantLanding() {
         };
     }, [debouncedQuery]);
 
-    const filteredRestaurants = restaurants;
-    const filteredNearbyRestaurants = nearbyRestaurants;
+    const [cuisineFilter, setCuisineFilter] = useState('All');
+    const [priceFilter, setPriceFilter] = useState('All');
+    const [ratingFilter, setRatingFilter] = useState(0);
+    const [dietaryFilter, setDietaryFilter] = useState('All');
+    const [ambienceFilter, setAmbienceFilter] = useState('All');
+    const [occasionFilter, setOccasionFilter] = useState('All');
+    const [openNowFilter, setOpenNowFilter] = useState(false);
+
+    const filteredRestaurants = React.useMemo(() => {
+        return restaurants.filter((res) => {
+            if (cuisineFilter !== 'All' && !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())) return false;
+            if (priceFilter !== 'All' && res.priceLevel && !res.priceLevel.toLowerCase().includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))) return false;
+            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter) return false;
+            if (dietaryFilter !== 'All' && !(res.dietaryPreferences || []).some((d: string) => d.toLowerCase().includes(dietaryFilter.toLowerCase()))) return false;
+            if (ambienceFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(ambienceFilter.toLowerCase())) && !res.neighborhood?.toLowerCase().includes(ambienceFilter.toLowerCase())) return false;
+            if (occasionFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(occasionFilter.toLowerCase()))) return false;
+            if (openNowFilter && !res.displayHours) return false;
+            return true;
+        });
+    }, [restaurants, cuisineFilter, priceFilter, ratingFilter, dietaryFilter, ambienceFilter, occasionFilter, openNowFilter]);
+
+    const filteredNearbyRestaurants = React.useMemo(() => {
+        return nearbyRestaurants.filter((res) => {
+            if (cuisineFilter !== 'All' && !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())) return false;
+            if (priceFilter !== 'All' && res.priceLevel && !res.priceLevel.toLowerCase().includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))) return false;
+            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter) return false;
+            if (dietaryFilter !== 'All' && !(res.dietaryPreferences || []).some((d: string) => d.toLowerCase().includes(dietaryFilter.toLowerCase()))) return false;
+            if (ambienceFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(ambienceFilter.toLowerCase())) && !res.neighborhood?.toLowerCase().includes(ambienceFilter.toLowerCase())) return false;
+            if (occasionFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(occasionFilter.toLowerCase()))) return false;
+            if (openNowFilter && !res.displayHours) return false;
+            return true;
+        });
+    }, [nearbyRestaurants, cuisineFilter, priceFilter, ratingFilter, dietaryFilter, ambienceFilter, occasionFilter, openNowFilter]);
 
     useEffect(() => {
         const fetchFavorites = async () => {
@@ -288,180 +321,38 @@ export default function RestaurantLanding() {
                 }}
             />
 
-            <main className="pt-20">
+            <main className="pt-14">
                 {/* Hero & Featured Container */}
                 <div className="max-w-7xl mx-auto px-4 md:px-8 pt-3 md:pt-10">
-                        {/* ── DESKTOP Hero Banner (hidden on mobile) ── */}
-                        <section className="relative w-full mb-10 hidden md:block">
-                            {/* Banner Image Container with overflow-hidden for rounded corners */}
-                            <div className="relative w-full h-[300px] rounded-[24px] overflow-hidden">
-                                <Image
-                                    src="/landing/home-banner.png"
-                                    alt="Explore the best Restaurant closest to you"
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                />
-                                {/* Dark gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent rounded-[24px]" />
-                            </div>
+                    {/* ── DESKTOP Hero Banner (hidden on mobile) ── */}
+                    <section className="relative w-full mb-8 hidden md:block rounded-[24px]">
+                        {/* Banner Image Container with rounded corners */}
+                        <div className="relative w-full h-[260px] md:h-[300px] rounded-[24px] overflow-hidden shadow-md bg-[#0A0A0A]">
+                            <Image
+                                src="/landing/home-banner.png"
+                                alt="Explore the best Restaurant closest to you"
+                                fill
+                                className="object-cover object-center"
+                                priority
+                            />
+                            {/* Dark gradient overlay */}
+                            <div className="absolute inset-0 " />
+                        </div>
 
-                            {/* Search bar overlay - outside overflow-hidden so dropdown pops out freely */}
-                            <div className="absolute bottom-6 left-6 w-[50%] max-w-md z-40">
-                                <div className="relative">
-                                    <form
-                                        onSubmit={(e) => {
-                                            e.preventDefault();
-                                            if (searchQuery.trim()) {
-                                                setShowAutocomplete(false);
-                                                analytics.track('search_submitted', {
-                                                    search_query: searchQuery.trim(),
-                                                });
-                                                router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                                            }
-                                        }}
-                                        className="relative flex items-center bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 px-2 py-1.5 shadow-lg"
-                                    >
-                                        <Search
-                                            className="text-gray-400 flex-shrink-0 ml-1"
-                                            size={16}
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Search restaurants by name, cuisine..."
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                setSearchQuery(val);
-                                                setShowAutocomplete(val.trim().length > 0);
-                                            }}
-                                            onFocus={() => {
-                                                if (searchQuery.trim().length > 0) {
-                                                    setShowAutocomplete(true);
-                                                }
-                                            }}
-                                            className="flex-1 bg-transparent px-3 py-1.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
-                                        />
-                                        {searchQuery && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSearchQuery('');
-                                                    setShowAutocomplete(false);
-                                                }}
-                                                className="flex-shrink-0 mr-1 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
-                                            >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="13"
-                                                    height="13"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2.5"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                >
-                                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </form>
-
-                                    {/* Autocomplete Options Dropdown */}
-                                    {showAutocomplete && searchQuery.trim() && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                                            {restaurants.filter((r) =>
-                                                r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                r.tags?.toLowerCase().includes(searchQuery.toLowerCase())
-                                            ).length > 0 ? (
-                                                <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                                                    {restaurants
-                                                        .filter((r) =>
-                                                            r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                            r.tags?.toLowerCase().includes(searchQuery.toLowerCase())
-                                                        )
-                                                        .slice(0, 5)
-                                                        .map((res) => (
-                                                            <button
-                                                                key={res.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setShowAutocomplete(false);
-                                                                    analytics.track('restaurant_clicked', {
-                                                                        restaurant_id: res.id,
-                                                                        restaurant_name: res.name,
-                                                                        source: 'autocomplete',
-                                                                    });
-                                                                    router.push(`/restaurants/${res.id}`);
-                                                                }}
-                                                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors text-left group"
-                                                            >
-                                                                {res.coverImage ? (
-                                                                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative">
-                                                                        <Image
-                                                                            src={res.coverImage}
-                                                                            alt={res.name}
-                                                                            fill
-                                                                            className="object-cover"
-                                                                        />
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                                                                        <Utensils size={16} className="text-orange-500" />
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-sm font-semibold text-gray-800 group-hover:text-orange-600 truncate">
-                                                                        {res.name}
-                                                                    </p>
-                                                                    <p className="text-xs text-gray-400 truncate">
-                                                                        {res.tags || res.address || 'Restaurant'}
-                                                                    </p>
-                                                                </div>
-                                                                {res.rating && (
-                                                                    <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                                                                        <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                                                                        {res.rating}
-                                                                    </div>
-                                                                )}
-                                                            </button>
-                                                        ))}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setShowAutocomplete(false);
-                                                            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                                                        }}
-                                                        className="w-full py-2.5 px-4 bg-orange-50/60 hover:bg-orange-100/60 text-xs font-bold text-orange-600 text-center transition-colors"
-                                                    >
-                                                        See all results for &quot;{searchQuery}&quot; &rarr;
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="p-4 text-center">
-                                                    <p className="text-xs text-gray-500 mb-2">No matching restaurant found</p>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setShowAutocomplete(false);
-                                                            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                                                        }}
-                                                        className="text-xs font-bold text-orange-500 hover:underline"
-                                                    >
-                                                        Search all for &quot;{searchQuery}&quot; &rarr;
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </section>
+                        {/* Search bar INSIDE hero image (bottom-left as in screenshot) */}
+                        <div className="absolute bottom-6 left-6 right-6 z-40 max-w-3xl">
+                            <RestaurantSearchBar
+                                searchQuery={searchQuery}
+                                onSearchQueryChange={setSearchQuery}
+                                locationName={locationName}
+                                onLocationChange={setLocationName}
+                                restaurants={restaurants}
+                            />
+                        </div>
+                    </section>
 
                     {/* ── MOBILE Banner + Search (hidden on desktop) ── */}
-                    <section className="md:hidden w-full mb-3 -mt-3">
+                    <section className="md:hidden w-full mb-6 -mt-3">
                         {/* Greeting + Location */}
                         <div className="flex items-start justify-between -mb-2">
                             <div>
@@ -494,7 +385,7 @@ export default function RestaurantLanding() {
                         </div>
 
                         {/* Mobile banner image */}
-                        <div className="relative w-full h-[160px] rounded-[16px] overflow-hidden mb-1.5">
+                        <div className="relative w-full h-[160px] rounded-[16px] overflow-hidden mb-3">
                             <Image
                                 src="/landing/home-banner-mobile.png"
                                 alt="Book the best restaurant closest to you"
@@ -504,135 +395,49 @@ export default function RestaurantLanding() {
                             />
                         </div>
 
-                        {/* Mobile search bar — below the banner */}
-                        <div className="relative">
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    if (searchQuery.trim()) {
-                                        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                                    }
-                                }}
-                                className="relative flex items-center bg-white rounded-full border border-gray-200 shadow-sm px-4 py-3"
-                            >
-                                <Search
-                                    className="text-gray-400 flex-shrink-0"
-                                    size={18}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Search restaurant name, cuisine, location..."
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSearchQuery(val);
-                                        setShowAutocomplete(val.trim().length > 0);
-                                    }}
-                                    onFocus={() => {
-                                        if (searchQuery.trim().length > 0) setShowAutocomplete(true);
-                                    }}
-                                    className="flex-1 bg-transparent px-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSearchQuery('');
-                                            setShowAutocomplete(false);
-                                        }}
-                                        className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 transition-colors"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="11"
-                                            height="11"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <line
-                                                x1="18"
-                                                y1="6"
-                                                x2="6"
-                                                y2="18"
-                                            />
-                                            <line
-                                                x1="6"
-                                                y1="6"
-                                                x2="18"
-                                                y2="18"
-                                            />
-                                        </svg>
-                                    </button>
-                                )}
-                            </form>
-                            {showAutocomplete && searchQuery.trim() && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
-                                    {restaurants.filter((r) =>
-                                        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                        r.tags?.toLowerCase().includes(searchQuery.toLowerCase())
-                                    ).length > 0 ? (
-                                        <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
-                                            {restaurants
-                                                .filter((r) =>
-                                                    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                    r.tags?.toLowerCase().includes(searchQuery.toLowerCase())
-                                                )
-                                                .slice(0, 5)
-                                                .map((res) => (
-                                                    <button
-                                                        key={res.id}
-                                                        type="button"
-                                                                onClick={() => {
-                                                                    setShowAutocomplete(false);
-                                                                    analytics.track('restaurant_clicked', {
-                                                                        restaurant_id: res.id,
-                                                                        restaurant_name: res.name,
-                                                                        source: 'search_results',
-                                                                    });
-                                                                    router.push(`/restaurants/${res.id}`);
-                                                                }}
-                                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors text-left"
-                                                    >
-                                                        {res.coverImage ? (
-                                                            <div className="w-9 h-9 rounded-md overflow-hidden flex-shrink-0 relative">
-                                                                <Image
-                                                                    src={res.coverImage}
-                                                                    alt={res.name}
-                                                                    fill
-                                                                    className="object-cover"
-                                                                />
-                                                            </div>
-                                                        ) : (
-                                                            <div className="w-9 h-9 rounded-md bg-orange-100 flex items-center justify-center flex-shrink-0">
-                                                                <Utensils size={14} className="text-orange-400" />
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-semibold text-gray-800 truncate">
-                                                                {res.name}
-                                                            </p>
-                                                            <p className="text-[10px] text-gray-400 truncate">
-                                                                {res.tags || res.address}
-                                                            </p>
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                        </div>
-                                    ) : (
-                                        <div className="p-3 text-center text-xs text-gray-500">
-                                            No matching restaurant found
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        {/* Mobile Airbnb Search Bar */}
+                        <RestaurantSearchBar
+                            searchQuery={searchQuery}
+                            onSearchQueryChange={setSearchQuery}
+                            locationName={locationName}
+                            onLocationChange={setLocationName}
+                            restaurants={restaurants}
+                        />
                     </section>
 
-                    {/* Featured Section */}
+                </div>
+
+                {/* ── Full Width Filters Bar (from design screenshot) ── */}
+                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4">
+                    <FilterBar
+                        cuisineFilter={cuisineFilter}
+                        onCuisineChange={setCuisineFilter}
+                        priceFilter={priceFilter}
+                        onPriceChange={setPriceFilter}
+                        ratingFilter={ratingFilter}
+                        onRatingChange={setRatingFilter}
+                        dietaryFilter={dietaryFilter}
+                        onDietaryChange={setDietaryFilter}
+                        ambienceFilter={ambienceFilter}
+                        onAmbienceChange={setAmbienceFilter}
+                        occasionFilter={occasionFilter}
+                        onOccasionChange={setOccasionFilter}
+                        openNowFilter={openNowFilter}
+                        onOpenNowToggle={() => setOpenNowFilter((prev) => !prev)}
+                        onClearAll={() => {
+                            setCuisineFilter('All');
+                            setPriceFilter('All');
+                            setRatingFilter(0);
+                            setDietaryFilter('All');
+                            setAmbienceFilter('All');
+                            setOccasionFilter('All');
+                            setOpenNowFilter(false);
+                        }}
+                    />
+                </div>
+
+                {/* Featured Section */}
+                <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <section className="mb-12">
                         <h2 className="text-xl md:text-2xl font-bold text-[#3D2117] mb-6">
                             Featured Restaurant
@@ -732,23 +537,23 @@ export default function RestaurantLanding() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {nearbyLoading
                                 ? [1, 2, 3].map((i) => (
-                                      <div
-                                          key={i}
-                                          className="bg-white/10 h-64 rounded-[24px] animate-pulse"
-                                      ></div>
-                                  ))
+                                    <div
+                                        key={i}
+                                        className="bg-white/10 h-64 rounded-[24px] animate-pulse"
+                                    ></div>
+                                ))
                                 : filteredNearbyRestaurants
-                                      .slice(0, visibleCount)
-                                      .map((res) => (
-                                          <RestaurantCard
-                                              key={res.id}
-                                              restaurant={res}
-                                              isFavorite={favorites.includes(
-                                                  res.id,
-                                              )}
-                                              dark
-                                          />
-                                      ))}
+                                    .slice(0, visibleCount)
+                                    .map((res) => (
+                                        <RestaurantCard
+                                            key={res.id}
+                                            restaurant={res}
+                                            isFavorite={favorites.includes(
+                                                res.id,
+                                            )}
+                                            dark
+                                        />
+                                    ))}
                         </div>
                         {filteredNearbyRestaurants.length > visibleCount && (
                             <div className="flex justify-center mt-8">
@@ -845,9 +650,9 @@ function RestaurantCard({
         restaurant.images && restaurant.images.length > 0
             ? restaurant.images
             : [
-                  restaurant.coverImage ||
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=500&q=80',
-              ];
+                restaurant.coverImage ||
+                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=500&q=80',
+            ];
 
     useEffect(() => {
         setIsFavorite(initialIsFavorite);
@@ -924,7 +729,7 @@ function RestaurantCard({
         >
             <div className="relative h-48 overflow-hidden group/slider">
                 <Link
-                    href={`/restaurants/${restaurant.id}`}
+                    href={restaurant.isBookable !== false ? `/restaurants/${hotelNameSlug}` : `/restaurant/${restaurant.id}`}
                     className="block h-full w-full relative"
                 >
                     <Image
@@ -961,11 +766,10 @@ function RestaurantCard({
                                         e.stopPropagation();
                                         setCurrentImageIndex(index);
                                     }}
-                                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                                        index === currentImageIndex
-                                            ? 'bg-white w-3'
-                                            : 'bg-white/50 hover:bg-white/80'
-                                    }`}
+                                    className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentImageIndex
+                                        ? 'bg-white w-3'
+                                        : 'bg-white/50 hover:bg-white/80'
+                                        }`}
                                 />
                             ))}
                         </div>
@@ -988,7 +792,7 @@ function RestaurantCard({
                 </button>
             </div>
 
-            <Link href={`/restaurants/${restaurant.id}`}>
+            <Link href={restaurant.isBookable !== false ? `/restaurants/${hotelNameSlug}` : `/restaurant/${restaurant.id}`}>
                 <div
                     className={`p-4 ${dark ? 'bg-[#2A2A2A]' : 'bg-[#FFFBFA]'}`}
                 >
@@ -996,7 +800,7 @@ function RestaurantCard({
                         <h3
                             className={`text-lg font-bold ${dark ? 'text-white' : 'text-[#3D2117]'}`}
                         >
-                            {restaurant.name}
+                            {restaurant.restaurantName ?? restaurant.name}
                         </h3>
                         <div className="flex items-center bg-orange-50 px-2 py-1 rounded-[24px]">
                             <Star
@@ -1032,17 +836,17 @@ function RestaurantCard({
             >
                 {restaurant.isBookable !== false ? (
                     <Link
-                        href={`/restaurants/${hotelNameSlug}/${restaurant.id}/reservation`}
+                        href={`/restaurants/${hotelNameSlug}/reservation`}
                         className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block"
                     >
                         Book Reservation
                     </Link>
                 ) : (
                     <Link
-                        href={`/restaurants/${hotelNameSlug}/${restaurant.id}`}
-                        className="text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors inline-block"
+                        href={`/restaurant/${restaurant.id}`}
+                        className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block"
                     >
-                        View Details
+                        Request a Reservation
                     </Link>
                 )}
             </div>

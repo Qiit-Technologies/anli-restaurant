@@ -379,6 +379,14 @@ export default function RestaurantSearchView({
                         {topResults.slice(0, 3).map((item: any) => {
                             const id = item.id;
                             const title = item.name || 'Restaurant';
+                            const slug = (item.name || 'restaurant')
+                                .toLowerCase()
+                                .trim()
+                                .replace(/\s+/g, '-')
+                                .replace(/[^\w-]+/g, '')
+                                .replace(/--+/g, '-') || 'restaurant';
+                            const isBookable = item.isBookable !== false;
+                            const isScraped = item.isScraped === true;
                             const priceText = '₦30,000-90,000 per person';
                             const imgSrc =
                                 item.coverImage ||
@@ -388,7 +396,7 @@ export default function RestaurantSearchView({
                             return (
                                 <Link
                                     key={id}
-                                    href={`/restaurants/${id}`}
+                                    href={isBookable ? `/restaurants/${slug}` : `/restaurant/${id}`}
                                     className="group relative h-48 md:h-52 rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                                 >
                                     <Image
@@ -405,6 +413,11 @@ export default function RestaurantSearchView({
                                         <p className="text-xs text-gray-200 mt-0.5 font-medium">
                                             {priceText}
                                         </p>
+                                        {isScraped && (
+                                            <p className="text-xs text-orange-400 mt-0.5 font-medium">
+                                                Requested Reservation
+                                            </p>
+                                        )}
                                     </div>
                                 </Link>
                             );
@@ -415,6 +428,14 @@ export default function RestaurantSearchView({
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                         {topResults.slice(3, 8).map((res: any) => {
                             const id = res.id;
+                            const slug = (res.name || 'restaurant')
+                                .toLowerCase()
+                                .trim()
+                                .replace(/\s+/g, '-')
+                                .replace(/[^\w-]+/g, '')
+                                .replace(/--+/g, '-') || 'restaurant';
+                            const isBookable = res.isBookable !== false;
+                            const isScraped = res.isScraped === true;
                             const imgSrc =
                                 res.coverImage ||
                                 res.image ||
@@ -423,7 +444,7 @@ export default function RestaurantSearchView({
                             return (
                                 <Link
                                     key={id}
-                                    href={`/restaurants/${id}`}
+                                    href={isBookable ? `/restaurants/${slug}` : `/restaurant/${id}`}
                                     className="group relative h-32 md:h-36 rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all"
                                 >
                                     <Image
@@ -433,6 +454,11 @@ export default function RestaurantSearchView({
                                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    {isScraped && (
+                                        <div className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                            Reservation
+                                        </div>
+                                    )}
                                 </Link>
                             );
                         })}
@@ -459,6 +485,14 @@ export default function RestaurantSearchView({
                         {closestItems.slice(0, 3).map((res: any) => {
                             const id = res.id;
                             const name = res.name || 'Restaurant';
+                            const slug = (res.name || 'restaurant')
+                                .toLowerCase()
+                                .trim()
+                                .replace(/\s+/g, '-')
+                                .replace(/[^\w-]+/g, '')
+                                .replace(/--+/g, '-') || 'restaurant';
+                            const isBookable = res.isBookable !== false;
+                            const isScraped = res.isScraped === true;
                             const rating = res.rating || 4.8;
                             const hours = res.openingHours || res.hours || 'Open now 10:00 am close 11 : pm';
                             const tags = res.tags || 'Restaurant';
@@ -507,11 +541,16 @@ export default function RestaurantSearchView({
                                         </div>
 
                                         <Link
-                                            href={`/restaurants/${id}`}
+                                            href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
                                             className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm"
                                         >
                                             Book Reservation
                                         </Link>
+                                        {isScraped && (
+                                            <p className="text-[10px] text-orange-400 font-bold text-center mt-1">
+                                                Reservation Request
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -531,6 +570,14 @@ export default function RestaurantSearchView({
                         {fineDiningItems.slice(0, 3).map((res: any) => {
                             const id = res.id;
                             const name = res.name || 'Restaurant';
+                            const slug = (res.name || 'restaurant')
+                                .toLowerCase()
+                                .trim()
+                                .replace(/\s+/g, '-')
+                                .replace(/[^\w-]+/g, '')
+                                .replace(/--+/g, '-') || 'restaurant';
+                            const isBookable = res.isBookable !== false;
+                            const isScraped = res.isScraped === true;
                             const rating = res.rating || 4.8;
                             const hours = res.openingHours || res.hours || 'Open now 10:00 am close 11 : pm';
                             const tags = res.tags || 'Restaurant';
@@ -579,11 +626,16 @@ export default function RestaurantSearchView({
                                         </div>
 
                                         <Link
-                                            href={`/restaurants/${id}`}
+                                            href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
                                             className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100"
                                         >
                                             Book Reservation
                                         </Link>
+                                        {isScraped && (
+                                            <p className="text-[10px] text-orange-400 font-bold text-center mt-1">
+                                                Reservation Request
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             );

@@ -123,13 +123,14 @@ function SearchPageContent() {
                         favorites={favorites}
                         onToggleFavorite={async (id) => {
                             try {
+                                const isFav = favorites.includes(id);
                                 await customerAuthService.toggleFavorite(id);
                                 setFavorites((prev) =>
-                                    prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+                                    isFav ? prev.filter((f) => f !== id) : [...prev, id]
                                 );
                                 analytics.track('favorite_toggled', {
                                     restaurant_id: id,
-                                    action: prev.includes(id) ? 'removed' : 'added',
+                                    action: isFav ? 'removed' : 'added',
                                     source: 'search_page',
                                 });
                             } catch {

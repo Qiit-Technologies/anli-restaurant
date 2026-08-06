@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Search,
     MapPin,
@@ -48,13 +48,32 @@ export default function CustomerHeader({
     const displayLocationName = propLocationName || internalLocationName;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(initialScrolled);
+    const [hidden, setHidden] = useState(false);
+    const lastScrollY = useRef(0);
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY < 20) {
+                setScrolled(false);
+                setHidden(false);
+            } else if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+                setHidden(true);
+            } else if (currentScrollY < lastScrollY.current) {
+                setHidden(false);
+                setScrolled(true);
+            }
+
+            lastScrollY.current = currentScrollY;
         };
-        window.addEventListener('scroll', handleScroll);
-        const loadedUser = customerAuthService.getUser();
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const loadedUser = customerAuthService.getUser();
+    useEffect(() => {
         setUser(loadedUser);
         if (loadedUser?.id) {
             analytics.identify(loadedUser.id);
@@ -64,7 +83,6 @@ export default function CustomerHeader({
                 last_name: loadedUser.lastName,
             });
         }
-        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const handleLogout = () => {
@@ -94,7 +112,7 @@ export default function CustomerHeader({
     return (
         <>
             <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm' : 'bg-white border-b border-gray-50'}`}
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm' : 'bg-white border-b border-gray-50'} ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
             >
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-6 md:gap-12 lg:gap-24">

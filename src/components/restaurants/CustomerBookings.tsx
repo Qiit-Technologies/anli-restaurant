@@ -202,7 +202,7 @@ export default function CustomerBookings() {
                                                 Details
                                             </button>
                                             <Link 
-                                                href={`/restaurants/${booking.hotel?.name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-') || 'restaurant'}/${booking.hotel?.id}/reservation`}
+                                                href={`/restaurants/${booking.hotel?.name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-') || 'restaurant'}/reservation`}
                                                 className="px-4 py-1.5 bg-[#FFF5E9] text-[#FF8A00] rounded-full text-[10px] font-black hover:bg-orange-500 hover:text-white transition-all active:scale-95 shadow-sm"
                                             >
                                                 BOOK AGAIN
@@ -306,7 +306,7 @@ function FavoriteCard({ restaurant }: { restaurant: any }) {
 
     return (
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all group h-full flex flex-col">
-            <Link href={`/restaurants/${restaurant.id}`} className="block relative h-48 overflow-hidden">
+            <Link href={`/restaurants/${hotelNameSlug}/${restaurant.id}`} className="block relative h-48 overflow-hidden">
                 <Image 
                     src={restaurant.coverImage || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=500&q=80"} 
                     alt={restaurant.name}
@@ -337,7 +337,7 @@ function FavoriteCard({ restaurant }: { restaurant: any }) {
                 <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
                     <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Saved</span>
                     <Link 
-                        href={`/restaurants/${hotelNameSlug}/${restaurant.id}/reservation`}
+                        href={`/restaurants/${hotelNameSlug}/reservation`}
                         className="px-6 py-2 bg-gray-900 text-white rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-[#FF8A00] transition-all active:scale-95 shadow-lg"
                     >
                         Book Now

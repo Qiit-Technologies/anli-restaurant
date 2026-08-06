@@ -21,6 +21,7 @@ import {
     Facebook,
     Search,
 } from 'lucide-react';
+import { FaTiktok, FaSnapchat, FaYoutube } from 'react-icons/fa';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -36,11 +37,13 @@ import toast from 'react-hot-toast';
 
 interface RestaurantDetailProps {
     id: string;
+    slug?: string;
     hotelName?: string;
 }
 
 export default function RestaurantDetail({
     id,
+    slug,
     hotelName,
 }: RestaurantDetailProps) {
     const router = useRouter();
@@ -321,12 +324,17 @@ export default function RestaurantDetail({
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            handleBookingClick(`/restaurants/${hotelNameSlug}/${id}/reservation`)
+                                            handleBookingClick(slug ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`)
                                         }
                                         className="px-6 py-2.5 bg-[#0085FF] hover:bg-blue-600 text-white font-bold text-xs md:text-sm rounded-lg shadow-md transition-all active:scale-95"
                                     >
                                         Book a Table
                                     </button>
+                                    {(restaurant as any).isScraped && (
+                                        <span className="px-3 py-2.5 bg-orange-100 text-orange-700 font-bold text-xs md:text-sm rounded-lg">
+                                            Reservation Request
+                                        </span>
+                                    )}
                                     <a
                                         href={`tel:${phone}`}
                                         className="px-6 py-2.5 bg-[#E8E8E8] hover:bg-gray-300 text-gray-900 font-bold text-xs md:text-sm rounded-lg transition-all active:scale-95"
@@ -465,7 +473,7 @@ export default function RestaurantDetail({
                                         {restaurant.name} Menu
                                     </h3>
                                     <Link
-                                        href={`/restaurants/${id}/menu`}
+                                        href={slug ? `/restaurants/${slug}/menu` : `/restaurant/${id}/menu`}
                                         className="text-orange-600 hover:text-orange-700 text-xs md:text-sm font-bold flex items-center gap-1 hover:underline"
                                     >
                                         Full Menu <ChevronRight size={16} />
@@ -585,34 +593,69 @@ export default function RestaurantDetail({
                                         Stay Connected
                                     </h4>
                                     <div className="flex items-center gap-3.5 text-[#FF6A00]">
-                                        <a
-                                            href={restaurant.twitterUrl || '#twitter'}
-                                            aria-label="Twitter"
-                                            className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <Twitter size={15} />
-                                        </a>
-                                        <a
-                                            href={restaurant.linkedinUrl || '#linkedin'}
-                                            aria-label="LinkedIn"
-                                            className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <Linkedin size={15} />
-                                        </a>
-                                        <a
-                                            href={restaurant.instagramUrl || '#instagram'}
-                                            aria-label="Instagram"
-                                            className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <Instagram size={15} />
-                                        </a>
-                                        <a
-                                            href={restaurant.facebookUrl || '#facebook'}
-                                            aria-label="Facebook"
-                                            className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <Facebook size={15} />
-                                        </a>
+                                        {restaurant.twitterUrl && (
+                                            <a
+                                                href={restaurant.twitterUrl}
+                                                aria-label="Twitter"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Twitter size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.linkedinUrl && (
+                                            <a
+                                                href={restaurant.linkedinUrl}
+                                                aria-label="LinkedIn"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Linkedin size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.instagramUrl && (
+                                            <a
+                                                href={restaurant.instagramUrl}
+                                                aria-label="Instagram"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Instagram size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.facebookUrl && (
+                                            <a
+                                                href={restaurant.facebookUrl}
+                                                aria-label="Facebook"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Facebook size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.tiktokUrl && (
+                                            <a
+                                                href={restaurant.tiktokUrl}
+                                                aria-label="TikTok"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <FaTiktok size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.snapchatUrl && (
+                                            <a
+                                                href={restaurant.snapchatUrl}
+                                                aria-label="Snapchat"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <FaSnapchat size={15} />
+                                            </a>
+                                        )}
+                                        {restaurant.youtubeUrl && (
+                                            <a
+                                                href={restaurant.youtubeUrl}
+                                                aria-label="YouTube"
+                                                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#FF6A00] hover:text-white transition-all shadow-sm"
+                                            >
+                                                <FaYoutube size={15} />
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
 

@@ -20,11 +20,15 @@ export interface Restaurant {
     linkedinUrl?: string;
     instagramUrl?: string;
     facebookUrl?: string;
+    tiktokUrl?: string;
+    snapchatUrl?: string;
+    youtubeUrl?: string;
     website?: string;
     contactEmail?: string;
     contactPhone?: string;
     weekdayHours?: string;
     weekendHours?: string;
+    restaurantName?: string
     closeTime?: string;
     lat?: number;
     lng?: number;
@@ -121,6 +125,9 @@ export const restaurantService = {
                         linkedinUrl: scrapedData.linkedinUrl,
                         instagramUrl: scrapedData.instagramUrl,
                         facebookUrl: scrapedData.facebookUrl,
+                        tiktokUrl: scrapedData.tiktokUrl,
+                        snapchatUrl: scrapedData.snapchatUrl,
+                        youtubeUrl: scrapedData.youtubeUrl,
                         city: scrapedData.city,
                         neighborhood: scrapedData.neighborhood,
                         weekdayHours: scrapedData.weekdayHours,
@@ -192,33 +199,33 @@ export const restaurantService = {
         }
     },
 
-/**
- * Searches restaurants by name, tags, or address with pagination
- */
-search: async (
-    query: string,
-    filters?: { rating?: number; tags?: string },
-    page?: number,
-    limit?: number,
-): Promise<{ restaurants: Restaurant[]; total: number }> => {
-    try {
-        let url = `/hotels/mobile/search?q=${encodeURIComponent(query)}`;
-        if (filters?.rating) url += `&rating=${filters.rating}`;
-        if (filters?.tags)
-            url += `&tags=${encodeURIComponent(filters.tags)}`;
-        if (page) url += `&page=${page}`;
-        if (limit) url += `&limit=${limit}`;
+    /**
+     * Searches restaurants by name, tags, or address with pagination
+     */
+    search: async (
+        query: string,
+        filters?: { rating?: number; tags?: string },
+        page?: number,
+        limit?: number,
+    ): Promise<{ restaurants: Restaurant[]; total: number }> => {
+        try {
+            let url = `/hotels/mobile/search?q=${encodeURIComponent(query)}`;
+            if (filters?.rating) url += `&rating=${filters.rating}`;
+            if (filters?.tags)
+                url += `&tags=${encodeURIComponent(filters.tags)}`;
+            if (page) url += `&page=${page}`;
+            if (limit) url += `&limit=${limit}`;
 
-        const response = await api.get(url);
-        const data = response.data;
-        if (Array.isArray(data)) {
-            return { restaurants: data, total: data.length };
+            const response = await api.get(url);
+            const data = response.data;
+            if (Array.isArray(data)) {
+                return { restaurants: data, total: data.length };
+            }
+            return { restaurants: data.hotels ?? data, total: data.total ?? data.hotels?.length ?? 0 };
+        } catch (error: any) {
+            throw error.response?.data || error.message;
         }
-        return { restaurants: data.hotels ?? data, total: data.total ?? data.hotels?.length ?? 0 };
-    } catch (error: any) {
-        throw error.response?.data || error.message;
-    }
-},
+    },
 
     /**
      * Autocomplete suggestions for restaurant search
@@ -275,5 +282,49 @@ search: async (
         } catch (error: any) {
             throw error.response?.data || error.message;
         }
+    },
+
+    /**
+     * Resolves a restaurant by slug, searching both featured and scraped restaurants
+     */
+    resolveBySlug: async (slug: string): Promise<Restaurant | null> => {
+        try {
+            const featured = await restaurantService.getFeatured();
+            const match = featured.find(
+                (r) =>
+                    r.name
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^\w-]+/g, '')
+                        .replace(/--+/g, '-') === slug,
+            );
+            if (match) {
+                return restaurantService.getDetails(match.id);
+            }
+        } catch {
+            // fall through to scraped search
+        }
+
+        try {
+            const scraped = await api.get('/hotels/scraped-restaurants');
+            const scrapedList = scraped.data as any[];
+            const scrapedMatch = scrapedList.find(
+                (r: any) =>
+                    r.name
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^\w-]+/g, '')
+                        .replace(/--+/g, '-') === slug,
+            );
+            if (scrapedMatch) {
+                return restaurantService.getDetails(scrapedMatch.id);
+            }
+        } catch {
+            // fall through
+        }
+
+        return null;
     },
 };

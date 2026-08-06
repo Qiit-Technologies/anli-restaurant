@@ -2,13 +2,12 @@ import mixpanel from 'mixpanel-browser';
 import { customerAuthService } from '@/services/customerAuth.service';
 
 const MIXPANEL_TOKEN = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || '';
-
+console.log('Mixpanel Token:', MIXPANEL_TOKEN);
 if (MIXPANEL_TOKEN && typeof window !== 'undefined') {
   mixpanel.init(MIXPANEL_TOKEN, {
     debug: process.env.NODE_ENV === 'development',
     track_pageview: true,
     persistence: 'localStorage',
-    api_host: 'https://api.mixpanel.com',
     cross_site_cookie: false,
     secure_cookie: true,
     ip: false,
