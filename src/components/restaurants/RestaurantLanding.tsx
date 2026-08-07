@@ -340,7 +340,7 @@ export default function RestaurantLanding() {
                         </div>
 
                         {/* Search bar INSIDE hero image (bottom-left as in screenshot) */}
-                        <div className="absolute bottom-6 left-6 right-6 z-40 max-w-3xl">
+                        <div className="absolute bottom-6 left-6 right-6 z-[70] max-w-3xl">
                             <RestaurantSearchBar
                                 searchQuery={searchQuery}
                                 onSearchQueryChange={setSearchQuery}
@@ -352,7 +352,7 @@ export default function RestaurantLanding() {
                     </section>
 
                     {/* ── MOBILE Banner + Search (hidden on desktop) ── */}
-                    <section className="md:hidden w-full mb-6 -mt-3">
+                    <section className="md:hidden w-full mb-6 -mt-3 relative z-[70]">
                         {/* Greeting + Location */}
                         <div className="flex items-start justify-between -mb-2">
                             <div>
@@ -408,7 +408,7 @@ export default function RestaurantLanding() {
                 </div>
 
                 {/* ── Full Width Filters Bar (from design screenshot) ── */}
-                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative z-[200]">
                     <FilterBar
                         cuisineFilter={cuisineFilter}
                         onCuisineChange={setCuisineFilter}

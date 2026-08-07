@@ -93,22 +93,22 @@ export default function RestaurantSearchBar({
         : [];
 
     return (
-        <div ref={containerRef} className={`relative w-full max-w-4xl mx-auto ${className}`}>
+        <div ref={containerRef} className={`relative z-40 w-full max-w-4xl mx-auto ${className}`}>
             {/* ── Main Hero Search Bar Container ── */}
             <div
-                className={`relative flex items-center bg-white rounded-2xl border transition-all duration-200 ${
+                className={`relative flex flex-col md:flex-row md:items-center bg-white rounded-2xl border transition-all duration-200 ${
                     activeTab !== null
-                        ? 'bg-white border-gray-300 shadow-2xl ring-4 ring-orange-500/10'
+                        ? 'bg-white border-gray-300 shadow-2xl ring-4 ring-orange-500/10 z-[80]'
                         : 'border-gray-200/90 shadow-xl hover:shadow-2xl hover:border-gray-300'
-                } p-1.5 md:p-2`}
+                } p-2.5 md:p-2 gap-2 md:gap-0`}
             >
                 {/* Segment 1: Where */}
                 <div
                     onClick={() => setActiveTab('where')}
-                    className={`flex-1 flex items-center gap-3 px-4 md:px-5 py-1.5 rounded-xl cursor-pointer transition-all duration-200 ${
+                    className={`w-full md:w-auto md:flex-1 flex items-center gap-3 px-3.5 md:px-5 py-2 md:py-1.5 rounded-xl cursor-pointer transition-all duration-200 ${
                         activeTab === 'where'
                             ? 'bg-gray-100/80 shadow-inner'
-                            : 'hover:bg-gray-50'
+                            : 'bg-gray-50/80 md:bg-transparent hover:bg-gray-100/80 md:hover:bg-gray-50'
                     }`}
                 >
                     <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
@@ -118,7 +118,7 @@ export default function RestaurantSearchBar({
                         <p className="text-[10px] font-extrabold tracking-tight text-gray-400 uppercase">
                             Where
                         </p>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center justify-between md:justify-start gap-1">
                             <span className="text-xs md:text-sm font-bold text-gray-900 truncate">
                                 {locationName || 'Lagos, Nigeria'}
                             </span>
@@ -127,81 +127,83 @@ export default function RestaurantSearchBar({
                     </div>
                 </div>
 
-                {/* Divider */}
+                {/* Divider (Desktop only) */}
                 <div
                     className={`hidden md:block h-8 w-[1px] bg-gray-200 mx-1 transition-opacity ${
                         activeTab === 'where' || activeTab === 'what' ? 'opacity-0' : 'opacity-100'
                     }`}
                 />
 
-                {/* Segment 2: What */}
-                <div
-                    onClick={() => {
-                        setActiveTab('what');
-                        setTimeout(() => inputRef.current?.focus(), 50);
-                    }}
-                    className={`flex-[1.5] flex items-center gap-3 px-4 md:px-5 py-1.5 rounded-xl cursor-pointer transition-all duration-200 ${
-                        activeTab === 'what'
-                            ? 'bg-gray-100/80 shadow-inner'
-                            : 'hover:bg-gray-50'
-                    }`}
-                >
-                    <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
-                        <Search size={15} />
+                {/* Segment 2: What & Search Submit Button */}
+                <div className="w-full md:w-auto md:flex-[1.5] flex items-center gap-2 md:gap-3">
+                    <div
+                        onClick={() => {
+                            setActiveTab('what');
+                            setTimeout(() => inputRef.current?.focus(), 50);
+                        }}
+                        className={`flex-1 flex items-center gap-3 px-3.5 md:px-5 py-2 md:py-1.5 rounded-xl cursor-pointer transition-all duration-200 ${
+                            activeTab === 'what'
+                                ? 'bg-gray-100/80 shadow-inner'
+                                : 'bg-gray-50/80 md:bg-transparent hover:bg-gray-100/80 md:hover:bg-gray-50'
+                        }`}
+                    >
+                        <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
+                            <Search size={15} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-extrabold tracking-tight text-gray-400 uppercase">
+                                What
+                            </p>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Search restaurants, cuisines..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    onSearchQueryChange(e.target.value);
+                                    if (activeTab !== 'what') setActiveTab('what');
+                                }}
+                                onFocus={() => setActiveTab('what')}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSearchSubmit(e);
+                                    }
+                                }}
+                                className="w-full bg-transparent text-xs md:text-sm font-semibold text-gray-900 placeholder-gray-400 focus:outline-none truncate"
+                            />
+                        </div>
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSearchQueryChange('');
+                                }}
+                                className="p-1 rounded-md hover:bg-gray-200 text-gray-400"
+                            >
+                                <X size={13} />
+                            </button>
+                        )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-extrabold tracking-tight text-gray-400 uppercase">
-                            What
-                        </p>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            placeholder="Search restaurants, cuisines..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                onSearchQueryChange(e.target.value);
-                                if (activeTab !== 'what') setActiveTab('what');
-                            }}
-                            onFocus={() => setActiveTab('what')}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearchSubmit(e);
-                                }
-                            }}
-                            className="w-full bg-transparent text-xs md:text-sm font-semibold text-gray-900 placeholder-gray-400 focus:outline-none truncate"
-                        />
-                    </div>
-                    {searchQuery && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onSearchQueryChange('');
-                            }}
-                            className="p-1 rounded-md hover:bg-gray-200 text-gray-400"
-                        >
-                            <X size={13} />
-                        </button>
-                    )}
-                </div>
 
-                {/* Search Button */}
-                <button
-                    type="button"
-                    onClick={() => handleSearchSubmit()}
-                    className="flex items-center justify-center gap-2 px-5 md:px-7 py-2.5 bg-[#FF8A00] hover:bg-orange-600 text-white rounded-xl font-bold shadow-md shadow-orange-500/25 transition-all duration-200 active:scale-95 flex-shrink-0 cursor-pointer ml-1"
-                    aria-label="Search"
-                >
-                    <Search size={16} className="stroke-[2.5]" />
-                    <span className="font-bold text-sm">Search</span>
-                </button>
+                    {/* Search Button */}
+                    <button
+                        type="button"
+                        onClick={() => handleSearchSubmit()}
+                        className="flex items-center justify-center gap-2 px-4 sm:px-5 md:px-7 py-2.5 bg-[#FF8A00] hover:bg-orange-600 text-white rounded-xl font-bold shadow-md shadow-orange-500/25 transition-all duration-200 active:scale-95 flex-shrink-0 cursor-pointer md:ml-1"
+                        aria-label="Search"
+                    >
+                        <Search size={16} className="stroke-[2.5]" />
+                        <span className="font-bold text-sm">Search</span>
+                    </button>
+                </div>
             </div>
 
             {/* ── Dropdown Popovers ── */}
 
             {/* 1. WHERE Popover */}
             {activeTab === 'where' && (
-                <div className="absolute top-full left-0 mt-3 w-full sm:w-[380px] bg-white rounded-[32px] p-5 shadow-2xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 mt-3 w-full sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[90] animate-in fade-in zoom-in-95 duration-150">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">
                         Popular Locations
                     </p>
@@ -244,7 +246,7 @@ export default function RestaurantSearchBar({
 
             {/* 2. WHAT / RESTAURANT Popover */}
             {activeTab === 'what' && (
-                <div className="absolute top-full left-0 sm:left-1/3 mt-3 w-full sm:w-[440px] bg-white rounded-[32px] p-5 shadow-2xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 sm:left-1/3 mt-3 w-full sm:w-[440px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[90] animate-in fade-in zoom-in-95 duration-150">
                     {/* Quick Cuisines */}
                     <div className="mb-4">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">
