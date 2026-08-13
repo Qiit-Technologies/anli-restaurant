@@ -108,7 +108,7 @@ export default function FilterBar({
     };
 
     return (
-        <div ref={containerRef} className={`relative w-full ${openDropdown !== null ? 'z-[300]' : 'z-30'} ${className}`}>
+        <div ref={containerRef} className={`relative w-full ${openDropdown !== null ? 'z-[500]' : 'z-20'} ${className}`}>
             <div className="flex items-center justify-start w-full py-1 gap-2 overflow-x-auto md:overflow-visible no-scrollbar scroll-smooth whitespace-nowrap md:whitespace-normal pb-2 md:pb-1 md:flex-wrap">
                 {/* 1. All Filters Toggle Button */}
                 <button
@@ -404,12 +404,12 @@ export default function FilterBar({
 
             {/* 10. Comprehensive All-Filters Drawer / Modal */}
             {openDropdown === 'all' && (
-                <div className="fixed inset-0 z-[300] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[600] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4 animate-in fade-in duration-200">
                     {/* Backdrop */}
                     <div className="absolute inset-0" onClick={() => setOpenDropdown(null)} />
 
                     {/* Modal Card */}
-                    <div className="relative w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl p-5 md:p-6 shadow-2xl z-[310] max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-200">
+                    <div className="relative w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl p-5 md:p-6 shadow-2xl z-[610] max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-200">
                         {/* Header */}
                         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                             <div className="flex items-center gap-2">

@@ -8,6 +8,8 @@ import { customerAuthService } from '@/services/customerAuth.service';
 import { createPublicBooking } from '@/app/actions/booking';
 import Image from 'next/image';
 
+import { z } from 'zod';
+
 const STEPS = [
     { id: 1, label: 'Customer Details' },
     { id: 2, label: 'RSVP Date & time' },
@@ -33,6 +35,29 @@ const FOOD_TYPE_OPTIONS = [
     { value: 'asian', label: 'Asian' },
 ];
 
+const reservationSchema = z.object({
+    customerDetails: z.object({
+        firstName: z.string().min(1, 'First name is required'),
+        lastName: z.string().min(1, 'Last name is required'),
+        email: z.string().min(1, 'Email is required').email('Invalid email address'),
+        phone: z.string().min(1, 'Phone is required'),
+    }),
+    reservationDateTime: z.object({
+        date: z.string().min(1, 'Date is required'),
+        time: z.string().min(1, 'Time is required'),
+        tableType: z.string().min(1, 'Table type is required'),
+        reservationType: z.string().min(1, 'Reservation type is required'),
+        guestNumber: z.string().min(1, 'Guest number is required'),
+        foodType: z.string().optional(),
+        foodQuantity: z.string().optional(),
+    }),
+    paymentMethod: z.object({
+        paymentOption: z.string().min(1, 'Payment method is required'),
+        accountToPay: z.string().optional(),
+        totalCost: z.string().optional(),
+    }),
+});
+
 interface ReservationFormProps {
     hotelId?: string;
 }
@@ -43,24 +68,7 @@ export default function ReservationForm({ hotelId }: ReservationFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm({
-        resolver: zodResolver({
-            customerDetails: {
-                firstName: { required: 'First name is required' },
-                lastName: { required: 'Last name is required' },
-                email: { required: 'Email is required', pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' } },
-                phone: { required: 'Phone is required' },
-            },
-            reservationDateTime: {
-                date: { required: 'Date is required' },
-                time: { required: 'Time is required' },
-                tableType: { required: 'Table type is required' },
-                reservationType: { required: 'Reservation type is required' },
-                guestNumber: { required: 'Guest number is required' },
-            },
-            paymentMethod: {
-                paymentOption: { required: 'Payment method is required' },
-            },
-        }),
+        resolver: zodResolver(reservationSchema),
         mode: 'onChange',
         defaultValues: {
             customerDetails: { firstName: '', lastName: '', email: '', phone: '' },

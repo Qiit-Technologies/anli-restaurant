@@ -93,12 +93,12 @@ export default function RestaurantSearchBar({
         : [];
 
     return (
-        <div ref={containerRef} className={`relative z-40 w-full max-w-4xl mx-auto ${className}`}>
+        <div ref={containerRef} className={`relative w-full max-w-4xl mx-auto ${activeTab !== null ? 'z-[400]' : 'z-40'} ${className}`}>
             {/* ── Main Hero Search Bar Container ── */}
             <div
                 className={`relative flex flex-col md:flex-row md:items-center bg-white rounded-2xl border transition-all duration-200 ${
                     activeTab !== null
-                        ? 'bg-white border-gray-300 shadow-2xl ring-4 ring-orange-500/10 z-[80]'
+                        ? 'bg-white border-gray-300 shadow-2xl ring-4 ring-orange-500/10 z-[400]'
                         : 'border-gray-200/90 shadow-xl hover:shadow-2xl hover:border-gray-300'
                 } p-2.5 md:p-2 gap-2 md:gap-0`}
             >
@@ -203,7 +203,7 @@ export default function RestaurantSearchBar({
 
             {/* 1. WHERE Popover */}
             {activeTab === 'where' && (
-                <div className="absolute top-full left-0 mt-3 w-full sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[90] animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 mt-3 w-full sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[450] animate-in fade-in zoom-in-95 duration-150">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">
                         Popular Locations
                     </p>
@@ -246,7 +246,7 @@ export default function RestaurantSearchBar({
 
             {/* 2. WHAT / RESTAURANT Popover */}
             {activeTab === 'what' && (
-                <div className="absolute top-full left-0 sm:left-1/3 mt-3 w-full sm:w-[440px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[90] animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 sm:left-1/3 mt-3 w-full sm:w-[440px] max-w-[calc(100vw-2rem)] bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-5 shadow-2xl border border-gray-100 z-[450] animate-in fade-in zoom-in-95 duration-150">
                     {/* Quick Cuisines */}
                     <div className="mb-4">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">

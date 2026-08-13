@@ -340,7 +340,7 @@ export default function RestaurantLanding() {
                         </div>
 
                         {/* Search bar INSIDE hero image (bottom-left as in screenshot) */}
-                        <div className="absolute bottom-6 left-6 right-6 z-[70] max-w-3xl">
+                        <div className="absolute bottom-6 left-6 right-6 z-[300] max-w-3xl">
                             <RestaurantSearchBar
                                 searchQuery={searchQuery}
                                 onSearchQueryChange={setSearchQuery}
@@ -352,7 +352,7 @@ export default function RestaurantLanding() {
                     </section>
 
                     {/* ── MOBILE Banner + Search (hidden on desktop) ── */}
-                    <section className="md:hidden w-full mb-6 -mt-3 relative z-[70]">
+                    <section className="md:hidden w-full mb-6 -mt-3 relative z-[300]">
                         {/* Greeting + Location */}
                         <div className="flex items-start justify-between -mb-2">
                             <div>
@@ -408,7 +408,7 @@ export default function RestaurantLanding() {
                 </div>
 
                 {/* ── Full Width Filters Bar (from design screenshot) ── */}
-                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative z-[200]">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative z-20">
                     <FilterBar
                         cuisineFilter={cuisineFilter}
                         onCuisineChange={setCuisineFilter}
@@ -792,7 +792,7 @@ function RestaurantCard({
                 </button>
             </div>
 
-            <Link href={restaurant.isBookable !== false ? `/restaurants/${hotelNameSlug}` : `/restaurant/${restaurant.id}`}>
+            <Link href={restaurant.isScraped || restaurant.isBookable === false ? `/restaurant/${restaurant.id}` : `/restaurants/${hotelNameSlug}`}>
                 <div
                     className={`p-4 ${dark ? 'bg-[#2A2A2A]' : 'bg-[#FFFBFA]'}`}
                 >
@@ -834,19 +834,27 @@ function RestaurantCard({
             <div
                 className={`px-4 py-4 border-t ${dark ? 'border-white/10 bg-[#2A2A2A]' : 'border-gray-100 bg-white'}`}
             >
-                {restaurant.isBookable !== false ? (
+                {restaurant.isScraped || restaurant.isBookable === false ? (
+                    <a
+                        href={
+                            restaurant.website
+                                ? restaurant.website.startsWith('http://') || restaurant.website.startsWith('https://')
+                                    ? restaurant.website
+                                    : `https://${restaurant.website}`
+                                : `/restaurant/${restaurant.id}`
+                        }
+                        target={restaurant.website ? '_blank' : undefined}
+                        rel={restaurant.website ? 'noopener noreferrer' : undefined}
+                        className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block cursor-pointer"
+                    >
+                        Request a Reservation
+                    </a>
+                ) : (
                     <Link
                         href={`/restaurants/${hotelNameSlug}/reservation`}
                         className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block"
                     >
                         Book Reservation
-                    </Link>
-                ) : (
-                    <Link
-                        href={`/restaurant/${restaurant.id}`}
-                        className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block"
-                    >
-                        Request a Reservation
                     </Link>
                 )}
             </div>

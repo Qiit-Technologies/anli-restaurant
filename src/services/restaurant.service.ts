@@ -11,6 +11,7 @@ export interface Restaurant {
     tags: string;
     displayHours: string;
     isBookable?: boolean;
+    isScraped?: boolean;
     headline?: string;
     description?: string;
     amenities?: string[];

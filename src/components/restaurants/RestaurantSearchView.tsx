@@ -396,7 +396,7 @@ export default function RestaurantSearchView({
                             return (
                                 <Link
                                     key={id}
-                                    href={isBookable ? `/restaurants/${slug}` : `/restaurant/${id}`}
+                                    href={isBookable && !isScraped ? `/restaurants/${slug}` : `/restaurant/${id}`}
                                     className="group relative h-48 md:h-52 rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                                 >
                                     <Image
@@ -444,7 +444,7 @@ export default function RestaurantSearchView({
                             return (
                                 <Link
                                     key={id}
-                                    href={isBookable ? `/restaurants/${slug}` : `/restaurant/${id}`}
+                                    href={isBookable && !isScraped ? `/restaurants/${slug}` : `/restaurant/${id}`}
                                     className="group relative h-32 md:h-36 rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all"
                                 >
                                     <Image
@@ -540,16 +540,28 @@ export default function RestaurantSearchView({
                                             </p>
                                         </div>
 
-                                        <Link
-                                            href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
-                                            className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm"
-                                        >
-                                            Book Reservation
-                                        </Link>
-                                        {isScraped && (
-                                            <p className="text-[10px] text-orange-400 font-bold text-center mt-1">
-                                                Reservation Request
-                                            </p>
+                                        {isScraped ? (
+                                            <a
+                                                href={
+                                                    res.website
+                                                        ? res.website.startsWith('http://') || res.website.startsWith('https://')
+                                                            ? res.website
+                                                            : `https://${res.website}`
+                                                        : `/restaurant/${id}`
+                                                }
+                                                target={res.website ? '_blank' : undefined}
+                                                rel={res.website ? 'noopener noreferrer' : undefined}
+                                                className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm block cursor-pointer"
+                                            >
+                                                Request a Reservation
+                                            </a>
+                                        ) : (
+                                            <Link
+                                                href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
+                                                className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm"
+                                            >
+                                                Book Reservation
+                                            </Link>
                                         )}
                                     </div>
                                 </div>
@@ -625,16 +637,28 @@ export default function RestaurantSearchView({
                                             </p>
                                         </div>
 
-                                        <Link
-                                            href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
-                                            className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100"
-                                        >
-                                            Book Reservation
-                                        </Link>
-                                        {isScraped && (
-                                            <p className="text-[10px] text-orange-400 font-bold text-center mt-1">
-                                                Reservation Request
-                                            </p>
+                                        {isScraped ? (
+                                            <a
+                                                href={
+                                                    res.website
+                                                        ? res.website.startsWith('http://') || res.website.startsWith('https://')
+                                                            ? res.website
+                                                            : `https://${res.website}`
+                                                        : `/restaurant/${id}`
+                                                }
+                                                target={res.website ? '_blank' : undefined}
+                                                rel={res.website ? 'noopener noreferrer' : undefined}
+                                                className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100 block cursor-pointer"
+                                            >
+                                                Request a Reservation
+                                            </a>
+                                        ) : (
+                                            <Link
+                                                href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
+                                                className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100"
+                                            >
+                                                Book Reservation
+                                            </Link>
                                         )}
                                     </div>
                                 </div>
