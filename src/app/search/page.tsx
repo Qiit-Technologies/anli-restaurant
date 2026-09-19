@@ -19,7 +19,9 @@ function SearchPageContent() {
     const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState(false);
     const [favorites, setFavorites] = useState<number[]>([]);
-    const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
+    const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>(
+        [],
+    );
     const [locationName, setLocationName] = useState('Lekki Phase 1');
 
     useEffect(() => {
@@ -59,7 +61,12 @@ function SearchPageContent() {
         const doSearch = async () => {
             setLoading(true);
             try {
-                const res = await restaurantService.search(searchQuery.trim(), undefined, 1, 20);
+                const res = await restaurantService.search(
+                    searchQuery.trim(),
+                    undefined,
+                    1,
+                    20,
+                );
                 if (!cancelled) {
                     setRestaurants(res.restaurants);
                     analytics.track('search_performed', {
@@ -75,7 +82,7 @@ function SearchPageContent() {
                         (r) =>
                             r.name.toLowerCase().includes(query) ||
                             r.tags?.toLowerCase().includes(query) ||
-                            r.address?.toLowerCase().includes(query)
+                            r.address?.toLowerCase().includes(query),
                     );
                     setRestaurants(filtered);
                     analytics.track('search_performed', {
@@ -98,9 +105,7 @@ function SearchPageContent() {
 
     return (
         <div className="min-h-screen bg-[#F6F6F8]">
-            <CustomerHeader
-                onSearchClick={() => {}}
-            />
+            <CustomerHeader onSearchClick={() => {}} />
 
             <main className="pt-20">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -126,7 +131,9 @@ function SearchPageContent() {
                                 const isFav = favorites.includes(id);
                                 await customerAuthService.toggleFavorite(id);
                                 setFavorites((prev) =>
-                                    isFav ? prev.filter((f) => f !== id) : [...prev, id]
+                                    isFav
+                                        ? prev.filter((f) => f !== id)
+                                        : [...prev, id],
                                 );
                                 analytics.track('favorite_toggled', {
                                     restaurant_id: id,
@@ -146,11 +153,13 @@ function SearchPageContent() {
 
 export default function RestaurantSearchPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-[#F6F6F8] flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-[#F6F6F8] flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+            }
+        >
             <SearchPageContent />
         </Suspense>
     );

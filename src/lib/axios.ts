@@ -6,8 +6,6 @@ const api = axios.create({
     timeout: 60000,
 });
 
-let redirectLock = false;
-
 api.interceptors.request.use(
     (config) => {
         if (typeof window !== 'undefined') {
@@ -27,21 +25,17 @@ api.interceptors.response.use(
     (error) => {
         const status = error?.response?.status;
 
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && status === 401) {
             const path = window.location.pathname;
             const isAuthPage =
                 path.startsWith('/signin') ||
                 path.startsWith('/signup') ||
                 path.startsWith('/verify-email') ||
-                path.startsWith('/logout') ||
                 path.startsWith('/staff-login');
 
-            if (status === 401 && !isAuthPage && !redirectLock) {
-                redirectLock = true;
-                window.location.href = '/logout';
-                setTimeout(() => {
-                    redirectLock = false;
-                }, 1500);
+            if (!isAuthPage) {
+                localStorage.removeItem('customerToken');
+                localStorage.removeItem('customerUser');
             }
         }
 

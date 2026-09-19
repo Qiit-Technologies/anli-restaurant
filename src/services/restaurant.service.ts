@@ -29,7 +29,7 @@ export interface Restaurant {
     contactPhone?: string;
     weekdayHours?: string;
     weekendHours?: string;
-    restaurantName?: string
+    restaurantName?: string;
     closeTime?: string;
     lat?: number;
     lng?: number;
@@ -98,9 +98,14 @@ export const restaurantService = {
             return data;
         } catch (error: any) {
             const status = error?.response?.status;
-            if (status === 404 || (!status && error?.message === 'Restaurant not found')) {
+            if (
+                status === 404 ||
+                (!status && error?.message === 'Restaurant not found')
+            ) {
                 try {
-                    const scrapedResponse = await api.get(`/hotels/scraped-restaurants/${id}`);
+                    const scrapedResponse = await api.get(
+                        `/hotels/scraped-restaurants/${id}`,
+                    );
                     const scrapedData = scrapedResponse.data;
                     if (!scrapedData || !scrapedData.id) {
                         throw new Error('Restaurant not found');
@@ -110,11 +115,16 @@ export const restaurantService = {
                         name: scrapedData.name || 'Unnamed Restaurant',
                         address: scrapedData.address || '',
                         coverImage: scrapedData.coverImage || '',
-                        images: scrapedData.images?.length ? scrapedData.images : scrapedData.coverImage ? [scrapedData.coverImage] : [],
+                        images: scrapedData.images?.length
+                            ? scrapedData.images
+                            : scrapedData.coverImage
+                              ? [scrapedData.coverImage]
+                              : [],
                         rating: Number(scrapedData.rating ?? 4),
                         ratingCount: Number(scrapedData.ratingCount ?? 0),
                         tags: scrapedData.tags || 'Restaurant',
-                        displayHours: scrapedData.displayHours || 'Hours not available',
+                        displayHours:
+                            scrapedData.displayHours || 'Hours not available',
                         isBookable: scrapedData.isBookable ?? false,
                         headline: scrapedData.headline,
                         description: scrapedData.description,
@@ -144,10 +154,17 @@ export const restaurantService = {
                     };
                 } catch (scrapedError: any) {
                     const scrapedStatus = scrapedError?.response?.status;
-                    if (scrapedStatus === 404 || scrapedError?.message === 'Restaurant not found') {
+                    if (
+                        scrapedStatus === 404 ||
+                        scrapedError?.message === 'Restaurant not found'
+                    ) {
                         throw new Error('Restaurant not found');
                     }
-                    throw scrapedError?.response?.data || scrapedError?.message || 'Failed to load restaurant details';
+                    throw (
+                        scrapedError?.response?.data ||
+                        scrapedError?.message ||
+                        'Failed to load restaurant details'
+                    );
                 }
             }
             throw error.response?.data || error.message;
@@ -222,7 +239,10 @@ export const restaurantService = {
             if (Array.isArray(data)) {
                 return { restaurants: data, total: data.length };
             }
-            return { restaurants: data.hotels ?? data, total: data.total ?? data.hotels?.length ?? 0 };
+            return {
+                restaurants: data.hotels ?? data,
+                total: data.total ?? data.hotels?.length ?? 0,
+            };
         } catch (error: any) {
             throw error.response?.data || error.message;
         }

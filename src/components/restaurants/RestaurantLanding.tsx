@@ -131,32 +131,117 @@ export default function RestaurantLanding() {
     const [ambienceFilter, setAmbienceFilter] = useState('All');
     const [occasionFilter, setOccasionFilter] = useState('All');
     const [openNowFilter, setOpenNowFilter] = useState(false);
+    const [filtersOpen, setFiltersOpen] = useState(false);
 
     const filteredRestaurants = React.useMemo(() => {
         return restaurants.filter((res) => {
-            if (cuisineFilter !== 'All' && !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())) return false;
-            if (priceFilter !== 'All' && res.priceLevel && !res.priceLevel.toLowerCase().includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))) return false;
-            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter) return false;
-            if (dietaryFilter !== 'All' && !(res.dietaryPreferences || []).some((d: string) => d.toLowerCase().includes(dietaryFilter.toLowerCase()))) return false;
-            if (ambienceFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(ambienceFilter.toLowerCase())) && !res.neighborhood?.toLowerCase().includes(ambienceFilter.toLowerCase())) return false;
-            if (occasionFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(occasionFilter.toLowerCase()))) return false;
+            if (
+                cuisineFilter !== 'All' &&
+                !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())
+            )
+                return false;
+            if (
+                priceFilter !== 'All' &&
+                res.priceLevel &&
+                !res.priceLevel
+                    .toLowerCase()
+                    .includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))
+            )
+                return false;
+            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter)
+                return false;
+            if (
+                dietaryFilter !== 'All' &&
+                !(res.dietaryPreferences || []).some((d: string) =>
+                    d.toLowerCase().includes(dietaryFilter.toLowerCase()),
+                )
+            )
+                return false;
+            if (
+                ambienceFilter !== 'All' &&
+                !(res.serviceTypes || []).some((s: string) =>
+                    s.toLowerCase().includes(ambienceFilter.toLowerCase()),
+                ) &&
+                !res.neighborhood
+                    ?.toLowerCase()
+                    .includes(ambienceFilter.toLowerCase())
+            )
+                return false;
+            if (
+                occasionFilter !== 'All' &&
+                !(res.serviceTypes || []).some((s: string) =>
+                    s.toLowerCase().includes(occasionFilter.toLowerCase()),
+                )
+            )
+                return false;
             if (openNowFilter && !res.displayHours) return false;
             return true;
         });
-    }, [restaurants, cuisineFilter, priceFilter, ratingFilter, dietaryFilter, ambienceFilter, occasionFilter, openNowFilter]);
+    }, [
+        restaurants,
+        cuisineFilter,
+        priceFilter,
+        ratingFilter,
+        dietaryFilter,
+        ambienceFilter,
+        occasionFilter,
+        openNowFilter,
+    ]);
 
     const filteredNearbyRestaurants = React.useMemo(() => {
         return nearbyRestaurants.filter((res) => {
-            if (cuisineFilter !== 'All' && !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())) return false;
-            if (priceFilter !== 'All' && res.priceLevel && !res.priceLevel.toLowerCase().includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))) return false;
-            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter) return false;
-            if (dietaryFilter !== 'All' && !(res.dietaryPreferences || []).some((d: string) => d.toLowerCase().includes(dietaryFilter.toLowerCase()))) return false;
-            if (ambienceFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(ambienceFilter.toLowerCase())) && !res.neighborhood?.toLowerCase().includes(ambienceFilter.toLowerCase())) return false;
-            if (occasionFilter !== 'All' && !(res.serviceTypes || []).some((s: string) => s.toLowerCase().includes(occasionFilter.toLowerCase()))) return false;
+            if (
+                cuisineFilter !== 'All' &&
+                !res.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())
+            )
+                return false;
+            if (
+                priceFilter !== 'All' &&
+                res.priceLevel &&
+                !res.priceLevel
+                    .toLowerCase()
+                    .includes(priceFilter.toLowerCase().replace(/[^a-z]/g, ''))
+            )
+                return false;
+            if (ratingFilter > 0 && (res.rating || 0) < ratingFilter)
+                return false;
+            if (
+                dietaryFilter !== 'All' &&
+                !(res.dietaryPreferences || []).some((d: string) =>
+                    d.toLowerCase().includes(dietaryFilter.toLowerCase()),
+                )
+            )
+                return false;
+            if (
+                ambienceFilter !== 'All' &&
+                !(res.serviceTypes || []).some((s: string) =>
+                    s.toLowerCase().includes(ambienceFilter.toLowerCase()),
+                ) &&
+                !res.neighborhood
+                    ?.toLowerCase()
+                    .includes(ambienceFilter.toLowerCase())
+            )
+                return false;
+            if (
+                occasionFilter !== 'All' &&
+                !(res.serviceTypes || []).some((s: string) =>
+                    s.toLowerCase().includes(occasionFilter.toLowerCase()),
+                )
+            )
+                return false;
             if (openNowFilter && !res.displayHours) return false;
             return true;
         });
-    }, [nearbyRestaurants, cuisineFilter, priceFilter, ratingFilter, dietaryFilter, ambienceFilter, occasionFilter, openNowFilter]);
+    }, [
+        nearbyRestaurants,
+        cuisineFilter,
+        priceFilter,
+        ratingFilter,
+        dietaryFilter,
+        ambienceFilter,
+        occasionFilter,
+        openNowFilter,
+    ]);
 
     useEffect(() => {
         const fetchFavorites = async () => {
@@ -352,7 +437,7 @@ export default function RestaurantLanding() {
                     </section>
 
                     {/* ── MOBILE Banner + Search (hidden on desktop) ── */}
-                    <section className="md:hidden w-full mb-6 -mt-3 relative z-[300]">
+                    <section className="md:hidden w-full mb-6 -mt-3 relative z-[700] md:z-[300]">
                         {/* Greeting + Location */}
                         <div className="flex items-start justify-between -mb-2">
                             <div>
@@ -404,11 +489,12 @@ export default function RestaurantLanding() {
                             restaurants={restaurants}
                         />
                     </section>
-
                 </div>
 
                 {/* ── Full Width Filters Bar (from design screenshot) ── */}
-                <div className="max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative z-20">
+                <div
+                    className={`max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative ${filtersOpen ? 'z-[800]' : 'z-[600]'} md:z-20`}
+                >
                     <FilterBar
                         cuisineFilter={cuisineFilter}
                         onCuisineChange={setCuisineFilter}
@@ -423,7 +509,10 @@ export default function RestaurantLanding() {
                         occasionFilter={occasionFilter}
                         onOccasionChange={setOccasionFilter}
                         openNowFilter={openNowFilter}
-                        onOpenNowToggle={() => setOpenNowFilter((prev) => !prev)}
+                        onOpenNowToggle={() =>
+                            setOpenNowFilter((prev) => !prev)
+                        }
+                        onOpenChange={setFiltersOpen}
                         onClearAll={() => {
                             setCuisineFilter('All');
                             setPriceFilter('All');
@@ -537,23 +626,23 @@ export default function RestaurantLanding() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {nearbyLoading
                                 ? [1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="bg-white/10 h-64 rounded-[24px] animate-pulse"
-                                    ></div>
-                                ))
+                                      <div
+                                          key={i}
+                                          className="bg-white/10 h-64 rounded-[24px] animate-pulse"
+                                      ></div>
+                                  ))
                                 : filteredNearbyRestaurants
-                                    .slice(0, visibleCount)
-                                    .map((res) => (
-                                        <RestaurantCard
-                                            key={res.id}
-                                            restaurant={res}
-                                            isFavorite={favorites.includes(
-                                                res.id,
-                                            )}
-                                            dark
-                                        />
-                                    ))}
+                                      .slice(0, visibleCount)
+                                      .map((res) => (
+                                          <RestaurantCard
+                                              key={res.id}
+                                              restaurant={res}
+                                              isFavorite={favorites.includes(
+                                                  res.id,
+                                              )}
+                                              dark
+                                          />
+                                      ))}
                         </div>
                         {filteredNearbyRestaurants.length > visibleCount && (
                             <div className="flex justify-center mt-8">
@@ -650,9 +739,9 @@ function RestaurantCard({
         restaurant.images && restaurant.images.length > 0
             ? restaurant.images
             : [
-                restaurant.coverImage ||
-                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=500&q=80',
-            ];
+                  restaurant.coverImage ||
+                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=500&q=80',
+              ];
 
     useEffect(() => {
         setIsFavorite(initialIsFavorite);
@@ -680,7 +769,9 @@ function RestaurantCard({
         try {
             await customerAuthService.toggleFavorite(restaurant.id);
             toast.success(
-                previousFavorite ? 'Removed from favorites' : 'Added to favorites',
+                previousFavorite
+                    ? 'Removed from favorites'
+                    : 'Added to favorites',
             );
             analytics.track('favorite_toggled', {
                 restaurant_id: restaurant.id,
@@ -729,7 +820,11 @@ function RestaurantCard({
         >
             <div className="relative h-48 overflow-hidden group/slider">
                 <Link
-                    href={restaurant.isBookable !== false ? `/restaurants/${hotelNameSlug}` : `/restaurant/${restaurant.id}`}
+                    href={
+                        restaurant.isBookable !== false
+                            ? `/restaurants/${hotelNameSlug}`
+                            : `/restaurant/${restaurant.id}`
+                    }
                     className="block h-full w-full relative"
                 >
                     <Image
@@ -766,10 +861,11 @@ function RestaurantCard({
                                         e.stopPropagation();
                                         setCurrentImageIndex(index);
                                     }}
-                                    className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentImageIndex
-                                        ? 'bg-white w-3'
-                                        : 'bg-white/50 hover:bg-white/80'
-                                        }`}
+                                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                        index === currentImageIndex
+                                            ? 'bg-white w-3'
+                                            : 'bg-white/50 hover:bg-white/80'
+                                    }`}
                                 />
                             ))}
                         </div>
@@ -792,7 +888,13 @@ function RestaurantCard({
                 </button>
             </div>
 
-            <Link href={restaurant.isScraped || restaurant.isBookable === false ? `/restaurant/${restaurant.id}` : `/restaurants/${hotelNameSlug}`}>
+            <Link
+                href={
+                    restaurant.isScraped || restaurant.isBookable === false
+                        ? `/restaurant/${restaurant.id}`
+                        : `/restaurants/${hotelNameSlug}`
+                }
+            >
                 <div
                     className={`p-4 ${dark ? 'bg-[#2A2A2A]' : 'bg-[#FFFBFA]'}`}
                 >
@@ -838,13 +940,18 @@ function RestaurantCard({
                     <a
                         href={
                             restaurant.website
-                                ? restaurant.website.startsWith('http://') || restaurant.website.startsWith('https://')
+                                ? restaurant.website.startsWith('http://') ||
+                                  restaurant.website.startsWith('https://')
                                     ? restaurant.website
                                     : `https://${restaurant.website}`
                                 : `/restaurant/${restaurant.id}`
                         }
                         target={restaurant.website ? '_blank' : undefined}
-                        rel={restaurant.website ? 'noopener noreferrer' : undefined}
+                        rel={
+                            restaurant.website
+                                ? 'noopener noreferrer'
+                                : undefined
+                        }
                         className="text-[#FF8A00] font-bold text-sm hover:text-orange-600 transition-colors inline-block cursor-pointer"
                     >
                         Request a Reservation

@@ -18,6 +18,12 @@ import SearchEmptyIllustration from './SearchEmptyIllustration';
 import Footer from './Footer';
 import { analytics } from '@/lib/mixpanel';
 
+const getRestaurantImage = (restaurant: Restaurant) =>
+    restaurant.coverImage ||
+    restaurant.images?.[0] ||
+    (restaurant as Restaurant & { image?: string }).image ||
+    'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&q=80';
+
 interface RestaurantSearchViewProps {
     searchQuery: string;
     onSearchChange: (query: string) => void;
@@ -57,7 +63,8 @@ export default function RestaurantSearchView({
     const [priceFilter, setPriceFilter] = useState<string>('all');
     const [cuisineFilter, setCuisineFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('Location');
-    const [recentSearches, setRecentSearches] = useState<string[]>(DEFAULT_RECENTS);
+    const [recentSearches, setRecentSearches] =
+        useState<string[]>(DEFAULT_RECENTS);
     const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
     const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -75,15 +82,23 @@ export default function RestaurantSearchView({
 
         if (cuisineFilter !== 'all') {
             list = list.filter((r) =>
-                r.tags?.toLowerCase().includes(cuisineFilter.toLowerCase())
+                r.tags?.toLowerCase().includes(cuisineFilter.toLowerCase()),
             );
         }
 
-        if (sortBy === 'Rating') {
-            list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        } else if (sortBy === 'Location') {
-            list.sort((a, b) => (a.address || '').localeCompare(b.address || ''));
-        }
+        list.sort((a, b) => {
+            const sourceOrder =
+                Number(a.isScraped === true) - Number(b.isScraped === true);
+            if (sourceOrder !== 0) return sourceOrder;
+
+            if (sortBy === 'Rating') {
+                return (b.rating || 0) - (a.rating || 0);
+            }
+            if (sortBy === 'Location') {
+                return (a.address || '').localeCompare(b.address || '');
+            }
+            return 0;
+        });
 
         return list;
     }, [restaurants, priceFilter, cuisineFilter, sortBy]);
@@ -99,14 +114,18 @@ export default function RestaurantSearchView({
 
     const closestItems = nearbyRestaurants.length > 0 ? nearbyRestaurants : [];
     const fineDiningItems = allRestaurants.length > 0 ? allRestaurants : [];
-    const topResults = filteredResults.length > 0 ? filteredResults : allRestaurants;
+    const topResults =
+        filteredResults.length > 0 ? filteredResults : allRestaurants;
 
     return (
         <div className="w-full min-h-[80vh]  my-4 transition-all">
             {/* 1. Search Bar */}
             <div className="relative mb-6">
                 <div className="relative flex items-center bg-gray-50 rounded-full px-5 py-3 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
-                    <Search className="text-gray-400 mr-3 flex-shrink-0" size={20} />
+                    <Search
+                        className="text-gray-400 mr-3 flex-shrink-0"
+                        size={20}
+                    />
                     <input
                         type="text"
                         value={searchQuery}
@@ -142,15 +161,25 @@ export default function RestaurantSearchView({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setIsPriceDropdownOpen(!isPriceDropdownOpen);
+                                    setIsPriceDropdownOpen(
+                                        !isPriceDropdownOpen,
+                                    );
                                     setIsCuisineDropdownOpen(false);
                                     setIsSortDropdownOpen(false);
                                     setIsCustomPriceOpen(false);
                                 }}
                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100/70 hover:bg-gray-100 rounded-full text-xs md:text-sm font-medium text-gray-700 transition-colors"
                             >
-                                <span>Price {priceFilter !== 'all' ? `: ${priceFilter}` : ''}</span>
-                                <ChevronDown size={14} className="text-gray-400" />
+                                <span>
+                                    Price{' '}
+                                    {priceFilter !== 'all'
+                                        ? `: ${priceFilter}`
+                                        : ''}
+                                </span>
+                                <ChevronDown
+                                    size={14}
+                                    className="text-gray-400"
+                                />
                             </button>
 
                             {/* Preset Price Ranges Dropdown */}
@@ -159,20 +188,31 @@ export default function RestaurantSearchView({
                                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
                                         Price range
                                     </div>
-                                    {['₦30,000–90,000 per person', '₦15,000–30,000 per person', '₦20,000–100,000 per person', '₦50,000–800,000 per person'].map((range) => (
+                                    {[
+                                        '₦30,000–90,000 per person',
+                                        '₦15,000–30,000 per person',
+                                        '₦20,000–100,000 per person',
+                                        '₦50,000–800,000 per person',
+                                    ].map((range) => (
                                         <button
                                             key={range}
                                             type="button"
                                             onClick={() => {
                                                 setPriceFilter(range);
                                                 setIsPriceDropdownOpen(false);
-                                                analytics.track('filter_applied', {
-                                                    filter_type: 'price',
-                                                    filter_value: range,
-                                                });
+                                                analytics.track(
+                                                    'filter_applied',
+                                                    {
+                                                        filter_type: 'price',
+                                                        filter_value: range,
+                                                    },
+                                                );
                                             }}
-                                            className={`w-full text-left px-4 py-2.5 text-xs md:text-sm hover:bg-orange-50 transition-colors ${priceFilter === range ? 'font-bold text-orange-600' : 'text-gray-800'
-                                                }`}
+                                            className={`w-full text-left px-4 py-2.5 text-xs md:text-sm hover:bg-orange-50 transition-colors ${
+                                                priceFilter === range
+                                                    ? 'font-bold text-orange-600'
+                                                    : 'text-gray-800'
+                                            }`}
                                         >
                                             {range}
                                         </button>
@@ -193,27 +233,39 @@ export default function RestaurantSearchView({
                             {/* Custom Price Range Picker Popup */}
                             {isCustomPriceOpen && (
                                 <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl p-4 z-40 animate-in fade-in zoom-in-95 duration-150">
-                                    <div className="text-xs font-medium text-gray-400 mb-3">price</div>
+                                    <div className="text-xs font-medium text-gray-400 mb-3">
+                                        price
+                                    </div>
                                     <div className="w-full h-1.5 bg-gray-200 rounded-full relative mb-4">
                                         <div className="absolute left-0 right-1/4 top-0 bottom-0 bg-[#FF8A00] rounded-full" />
                                     </div>
                                     <div className="flex items-center gap-2 mb-4">
                                         <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5">
-                                            <span className="text-xs text-gray-400 font-bold mr-1">₦</span>
+                                            <span className="text-xs text-gray-400 font-bold mr-1">
+                                                ₦
+                                            </span>
                                             <input
                                                 type="text"
                                                 value={minPrice}
-                                                onChange={(e) => setMinPrice(e.target.value)}
+                                                onChange={(e) =>
+                                                    setMinPrice(e.target.value)
+                                                }
                                                 className="w-full bg-transparent text-xs text-gray-800 focus:outline-none"
                                             />
                                         </div>
-                                        <span className="text-xs text-gray-500 font-medium">To</span>
+                                        <span className="text-xs text-gray-500 font-medium">
+                                            To
+                                        </span>
                                         <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5">
-                                            <span className="text-xs text-gray-400 font-bold mr-1">₦</span>
+                                            <span className="text-xs text-gray-400 font-bold mr-1">
+                                                ₦
+                                            </span>
                                             <input
                                                 type="text"
                                                 value={maxPrice}
-                                                onChange={(e) => setMaxPrice(e.target.value)}
+                                                onChange={(e) =>
+                                                    setMaxPrice(e.target.value)
+                                                }
                                                 className="w-full bg-transparent text-xs text-gray-800 focus:outline-none"
                                             />
                                         </div>
@@ -221,7 +273,9 @@ export default function RestaurantSearchView({
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setPriceFilter(`₦${minPrice} - ₦${maxPrice}`);
+                                            setPriceFilter(
+                                                `₦${minPrice} - ₦${maxPrice}`,
+                                            );
                                             setIsCustomPriceOpen(false);
                                             analytics.track('filter_applied', {
                                                 filter_type: 'price_custom',
@@ -241,31 +295,56 @@ export default function RestaurantSearchView({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setIsCuisineDropdownOpen(!isCuisineDropdownOpen);
+                                    setIsCuisineDropdownOpen(
+                                        !isCuisineDropdownOpen,
+                                    );
                                     setIsPriceDropdownOpen(false);
                                     setIsSortDropdownOpen(false);
                                     setIsCustomPriceOpen(false);
                                 }}
                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100/70 hover:bg-gray-100 rounded-full text-xs md:text-sm font-medium text-gray-700 transition-colors"
                             >
-                                <span>Cuisine {cuisineFilter !== 'all' ? `: ${cuisineFilter}` : ''}</span>
-                                <ChevronDown size={14} className="text-gray-400" />
+                                <span>
+                                    Cuisine{' '}
+                                    {cuisineFilter !== 'all'
+                                        ? `: ${cuisineFilter}`
+                                        : ''}
+                                </span>
+                                <ChevronDown
+                                    size={14}
+                                    className="text-gray-400"
+                                />
                             </button>
                             {isCuisineDropdownOpen && (
                                 <div className="absolute top-full left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl py-2 z-40 animate-in fade-in zoom-in-95 duration-150">
-                                    {['all', 'Sushi', 'Suya', 'Fine Dining', 'Bar', 'Roof Top', 'Italian', 'Japanese'].map((c) => (
+                                    {[
+                                        'all',
+                                        'Sushi',
+                                        'Suya',
+                                        'Fine Dining',
+                                        'Bar',
+                                        'Roof Top',
+                                        'Italian',
+                                        'Japanese',
+                                    ].map((c) => (
                                         <button
                                             key={c}
                                             onClick={() => {
                                                 setCuisineFilter(c);
                                                 setIsCuisineDropdownOpen(false);
-                                                analytics.track('filter_applied', {
-                                                    filter_type: 'cuisine',
-                                                    filter_value: c,
-                                                });
+                                                analytics.track(
+                                                    'filter_applied',
+                                                    {
+                                                        filter_type: 'cuisine',
+                                                        filter_value: c,
+                                                    },
+                                                );
                                             }}
-                                            className={`w-full text-left px-4 py-2 text-xs md:text-sm hover:bg-orange-50 ${cuisineFilter === c ? 'font-bold text-orange-600' : 'text-gray-700'
-                                                }`}
+                                            className={`w-full text-left px-4 py-2 text-xs md:text-sm hover:bg-orange-50 ${
+                                                cuisineFilter === c
+                                                    ? 'font-bold text-orange-600'
+                                                    : 'text-gray-700'
+                                            }`}
                                         >
                                             {c === 'all' ? 'All Cuisines' : c}
                                         </button>
@@ -277,7 +356,9 @@ export default function RestaurantSearchView({
 
                     {/* Sort By Dropdown */}
                     <div className="flex items-center gap-2 relative">
-                        <span className="text-xs md:text-sm text-gray-500 font-medium">Sort by</span>
+                        <span className="text-xs md:text-sm text-gray-500 font-medium">
+                            Sort by
+                        </span>
                         <button
                             type="button"
                             onClick={() => {
@@ -307,8 +388,11 @@ export default function RestaurantSearchView({
                                                 sort_by: opt,
                                             });
                                         }}
-                                        className={`w-full text-left px-4 py-2.5 text-xs md:text-sm hover:bg-orange-50 transition-colors ${sortBy === opt ? 'font-bold text-orange-600' : 'text-gray-800'
-                                            }`}
+                                        className={`w-full text-left px-4 py-2.5 text-xs md:text-sm hover:bg-orange-50 transition-colors ${
+                                            sortBy === opt
+                                                ? 'font-bold text-orange-600'
+                                                : 'text-gray-800'
+                                        }`}
                                     >
                                         {opt}
                                     </button>
@@ -340,10 +424,17 @@ export default function RestaurantSearchView({
             {hasQuery && filteredResults.length === 0 ? (
                 <div className="py-8 flex flex-col items-center justify-center text-center">
                     <div className="mb-4">
-                        <Image src="/search.png" alt="No search results" width={200} height={200} />                    </div>
+                        <Image
+                            src="/search.png"
+                            alt="No search results"
+                            width={200}
+                            height={200}
+                        />{' '}
+                    </div>
 
                     <p className="text-sm md:text-base font-medium text-gray-700 max-w-md mb-6">
-                        Sorry, we could not find any matching results for your search
+                        Sorry, we could not find any matching results for your
+                        search
                     </p>
 
                     <div className="w-full max-w-md relative mb-8">
@@ -360,7 +451,9 @@ export default function RestaurantSearchView({
                     </div>
 
                     <div className="text-left bg-gray-50 rounded-2xl p-5 w-full max-w-md mb-8">
-                        <h4 className="text-sm font-bold text-[#1A1A1A] mb-2">Search Tip:</h4>
+                        <h4 className="text-sm font-bold text-[#1A1A1A] mb-2">
+                            Search Tip:
+                        </h4>
                         <ul className="text-xs md:text-sm text-gray-600 space-y-1.5 list-disc list-inside">
                             <li>Try searching by food name</li>
                             <li>Check the spelling</li>
@@ -371,7 +464,9 @@ export default function RestaurantSearchView({
             ) : (
                 <div className="mb-10">
                     <h3 className="text-lg md:text-xl font-bold text-[#1A1A1A] mb-4">
-                        {hasQuery ? `Results for "${searchQuery}"` : 'Recommendations'}
+                        {hasQuery
+                            ? `Results for "${searchQuery}"`
+                            : 'Recommendations'}
                     </h3>
 
                     {/* Top Row: Wide Cards */}
@@ -379,24 +474,26 @@ export default function RestaurantSearchView({
                         {topResults.slice(0, 3).map((item: any) => {
                             const id = item.id;
                             const title = item.name || 'Restaurant';
-                            const slug = (item.name || 'restaurant')
-                                .toLowerCase()
-                                .trim()
-                                .replace(/\s+/g, '-')
-                                .replace(/[^\w-]+/g, '')
-                                .replace(/--+/g, '-') || 'restaurant';
+                            const slug =
+                                (item.name || 'restaurant')
+                                    .toLowerCase()
+                                    .trim()
+                                    .replace(/\s+/g, '-')
+                                    .replace(/[^\w-]+/g, '')
+                                    .replace(/--+/g, '-') || 'restaurant';
                             const isBookable = item.isBookable !== false;
                             const isScraped = item.isScraped === true;
                             const priceText = '₦30,000-90,000 per person';
-                            const imgSrc =
-                                item.coverImage ||
-                                item.image ||
-                                'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&q=80';
+                            const imgSrc = getRestaurantImage(item);
 
                             return (
                                 <Link
                                     key={id}
-                                    href={isBookable && !isScraped ? `/restaurants/${slug}` : `/restaurant/${id}`}
+                                    href={
+                                        isBookable && !isScraped
+                                            ? `/restaurants/${slug}`
+                                            : `/restaurant/${id}`
+                                    }
                                     className="group relative h-48 md:h-52 rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                                 >
                                     <Image
@@ -428,23 +525,25 @@ export default function RestaurantSearchView({
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                         {topResults.slice(3, 8).map((res: any) => {
                             const id = res.id;
-                            const slug = (res.name || 'restaurant')
-                                .toLowerCase()
-                                .trim()
-                                .replace(/\s+/g, '-')
-                                .replace(/[^\w-]+/g, '')
-                                .replace(/--+/g, '-') || 'restaurant';
+                            const slug =
+                                (res.name || 'restaurant')
+                                    .toLowerCase()
+                                    .trim()
+                                    .replace(/\s+/g, '-')
+                                    .replace(/[^\w-]+/g, '')
+                                    .replace(/--+/g, '-') || 'restaurant';
                             const isBookable = res.isBookable !== false;
                             const isScraped = res.isScraped === true;
-                            const imgSrc =
-                                res.coverImage ||
-                                res.image ||
-                                'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&q=80';
+                            const imgSrc = getRestaurantImage(res);
 
                             return (
                                 <Link
                                     key={id}
-                                    href={isBookable && !isScraped ? `/restaurants/${slug}` : `/restaurant/${id}`}
+                                    href={
+                                        isBookable && !isScraped
+                                            ? `/restaurants/${slug}`
+                                            : `/restaurant/${id}`
+                                    }
                                     className="group relative h-32 md:h-36 rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all"
                                 >
                                     <Image
@@ -485,22 +584,29 @@ export default function RestaurantSearchView({
                         {closestItems.slice(0, 3).map((res: any) => {
                             const id = res.id;
                             const name = res.name || 'Restaurant';
-                            const slug = (res.name || 'restaurant')
-                                .toLowerCase()
-                                .trim()
-                                .replace(/\s+/g, '-')
-                                .replace(/[^\w-]+/g, '')
-                                .replace(/--+/g, '-') || 'restaurant';
+                            const slug =
+                                (res.name || 'restaurant')
+                                    .toLowerCase()
+                                    .trim()
+                                    .replace(/\s+/g, '-')
+                                    .replace(/[^\w-]+/g, '')
+                                    .replace(/--+/g, '-') || 'restaurant';
                             const isBookable = res.isBookable !== false;
                             const isScraped = res.isScraped === true;
                             const rating = res.rating || 4.8;
-                            const hours = res.openingHours || res.hours || 'Open now 10:00 am close 11 : pm';
+                            const hours =
+                                res.openingHours ||
+                                res.hours ||
+                                'Open now 10:00 am close 11 : pm';
                             const tags = res.tags || 'Restaurant';
-                            const imgSrc = res.coverImage || res.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80';
+                            const imgSrc = getRestaurantImage(res);
                             const isFav = favorites.includes(id);
 
                             return (
-                                <div key={id} className="flex flex-col bg-[#141414] rounded-[24px] overflow-hidden border border-white/5 hover:border-white/20 transition-all group">
+                                <div
+                                    key={id}
+                                    className="flex flex-col bg-[#141414] rounded-[24px] overflow-hidden border border-white/5 hover:border-white/20 transition-all group"
+                                >
                                     <div className="relative w-full h-44 md:h-48 overflow-hidden">
                                         <Image
                                             src={imgSrc}
@@ -510,10 +616,20 @@ export default function RestaurantSearchView({
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => onToggleFavorite && onToggleFavorite(id)}
+                                            onClick={() =>
+                                                onToggleFavorite &&
+                                                onToggleFavorite(id)
+                                            }
                                             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-orange-500 hover:scale-110 transition-transform"
                                         >
-                                            <Heart size={16} className={isFav ? 'fill-orange-500 text-orange-500' : 'text-orange-500'} />
+                                            <Heart
+                                                size={16}
+                                                className={
+                                                    isFav
+                                                        ? 'fill-orange-500 text-orange-500'
+                                                        : 'text-orange-500'
+                                                }
+                                            />
                                         </button>
                                     </div>
 
@@ -524,18 +640,27 @@ export default function RestaurantSearchView({
                                                     {name}
                                                 </h3>
                                                 <div className="flex items-center gap-1 text-xs text-orange-400 font-bold">
-                                                    <Star size={12} className="fill-orange-400 text-orange-400" />
+                                                    <Star
+                                                        size={12}
+                                                        className="fill-orange-400 text-orange-400"
+                                                    />
                                                     {rating}/5
                                                 </div>
                                             </div>
 
                                             <p className="text-[11px] text-gray-400 mb-1 flex items-center gap-1">
-                                                <Clock size={11} className="text-gray-400" />
+                                                <Clock
+                                                    size={11}
+                                                    className="text-gray-400"
+                                                />
                                                 {hours}
                                             </p>
 
                                             <p className="text-[11px] text-gray-400 mb-4 flex items-center gap-1">
-                                                <Utensils size={11} className="text-gray-400" />
+                                                <Utensils
+                                                    size={11}
+                                                    className="text-gray-400"
+                                                />
                                                 {tags}
                                             </p>
                                         </div>
@@ -544,20 +669,37 @@ export default function RestaurantSearchView({
                                             <a
                                                 href={
                                                     res.website
-                                                        ? res.website.startsWith('http://') || res.website.startsWith('https://')
+                                                        ? res.website.startsWith(
+                                                              'http://',
+                                                          ) ||
+                                                          res.website.startsWith(
+                                                              'https://',
+                                                          )
                                                             ? res.website
                                                             : `https://${res.website}`
                                                         : `/restaurant/${id}`
                                                 }
-                                                target={res.website ? '_blank' : undefined}
-                                                rel={res.website ? 'noopener noreferrer' : undefined}
+                                                target={
+                                                    res.website
+                                                        ? '_blank'
+                                                        : undefined
+                                                }
+                                                rel={
+                                                    res.website
+                                                        ? 'noopener noreferrer'
+                                                        : undefined
+                                                }
                                                 className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm block cursor-pointer"
                                             >
                                                 Request a Reservation
                                             </a>
                                         ) : (
                                             <Link
-                                                href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
+                                                href={
+                                                    isBookable
+                                                        ? `/restaurants/${slug}/reservation`
+                                                        : `/restaurant/${id}/reservation`
+                                                }
                                                 className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm"
                                             >
                                                 Book Reservation
@@ -582,22 +724,29 @@ export default function RestaurantSearchView({
                         {fineDiningItems.slice(0, 3).map((res: any) => {
                             const id = res.id;
                             const name = res.name || 'Restaurant';
-                            const slug = (res.name || 'restaurant')
-                                .toLowerCase()
-                                .trim()
-                                .replace(/\s+/g, '-')
-                                .replace(/[^\w-]+/g, '')
-                                .replace(/--+/g, '-') || 'restaurant';
+                            const slug =
+                                (res.name || 'restaurant')
+                                    .toLowerCase()
+                                    .trim()
+                                    .replace(/\s+/g, '-')
+                                    .replace(/[^\w-]+/g, '')
+                                    .replace(/--+/g, '-') || 'restaurant';
                             const isBookable = res.isBookable !== false;
                             const isScraped = res.isScraped === true;
                             const rating = res.rating || 4.8;
-                            const hours = res.openingHours || res.hours || 'Open now 10:00 am close 11 : pm';
+                            const hours =
+                                res.openingHours ||
+                                res.hours ||
+                                'Open now 10:00 am close 11 : pm';
                             const tags = res.tags || 'Restaurant';
-                            const imgSrc = res.coverImage || res.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80';
+                            const imgSrc = getRestaurantImage(res);
                             const isFav = favorites.includes(id);
 
                             return (
-                                <div key={id} className="flex flex-col bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                                <div
+                                    key={id}
+                                    className="flex flex-col bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group"
+                                >
                                     <div className="relative w-full h-44 md:h-48 overflow-hidden">
                                         <Image
                                             src={imgSrc}
@@ -607,10 +756,20 @@ export default function RestaurantSearchView({
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => onToggleFavorite && onToggleFavorite(id)}
+                                            onClick={() =>
+                                                onToggleFavorite &&
+                                                onToggleFavorite(id)
+                                            }
                                             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-orange-500 hover:scale-110 transition-transform"
                                         >
-                                            <Heart size={16} className={isFav ? 'fill-orange-500 text-orange-500' : 'text-orange-500'} />
+                                            <Heart
+                                                size={16}
+                                                className={
+                                                    isFav
+                                                        ? 'fill-orange-500 text-orange-500'
+                                                        : 'text-orange-500'
+                                                }
+                                            />
                                         </button>
                                     </div>
 
@@ -621,18 +780,27 @@ export default function RestaurantSearchView({
                                                     {name}
                                                 </h3>
                                                 <div className="flex items-center gap-1 text-xs text-orange-500 font-bold">
-                                                    <Star size={12} className="fill-orange-500 text-orange-500" />
+                                                    <Star
+                                                        size={12}
+                                                        className="fill-orange-500 text-orange-500"
+                                                    />
                                                     {rating}/5
                                                 </div>
                                             </div>
 
                                             <p className="text-[11px] text-gray-500 mb-1 flex items-center gap-1">
-                                                <Clock size={11} className="text-gray-400" />
+                                                <Clock
+                                                    size={11}
+                                                    className="text-gray-400"
+                                                />
                                                 {hours}
                                             </p>
 
                                             <p className="text-[11px] text-gray-500 mb-4 flex items-center gap-1">
-                                                <Utensils size={11} className="text-gray-400" />
+                                                <Utensils
+                                                    size={11}
+                                                    className="text-gray-400"
+                                                />
                                                 {tags}
                                             </p>
                                         </div>
@@ -641,20 +809,37 @@ export default function RestaurantSearchView({
                                             <a
                                                 href={
                                                     res.website
-                                                        ? res.website.startsWith('http://') || res.website.startsWith('https://')
+                                                        ? res.website.startsWith(
+                                                              'http://',
+                                                          ) ||
+                                                          res.website.startsWith(
+                                                              'https://',
+                                                          )
                                                             ? res.website
                                                             : `https://${res.website}`
                                                         : `/restaurant/${id}`
                                                 }
-                                                target={res.website ? '_blank' : undefined}
-                                                rel={res.website ? 'noopener noreferrer' : undefined}
+                                                target={
+                                                    res.website
+                                                        ? '_blank'
+                                                        : undefined
+                                                }
+                                                rel={
+                                                    res.website
+                                                        ? 'noopener noreferrer'
+                                                        : undefined
+                                                }
                                                 className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100 block cursor-pointer"
                                             >
                                                 Request a Reservation
                                             </a>
                                         ) : (
                                             <Link
-                                                href={isBookable ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`}
+                                                href={
+                                                    isBookable
+                                                        ? `/restaurants/${slug}/reservation`
+                                                        : `/restaurant/${id}/reservation`
+                                                }
                                                 className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100"
                                             >
                                                 Book Reservation

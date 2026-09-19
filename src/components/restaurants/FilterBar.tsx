@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     SlidersHorizontal,
     Utensils,
@@ -30,6 +31,7 @@ interface FilterBarProps {
     openNowFilter: boolean;
     onOpenNowToggle: () => void;
     onClearAll: () => void;
+    onOpenChange?: (isOpen: boolean) => void;
     className?: string;
 }
 
@@ -57,9 +59,22 @@ const RATINGS = [
 
 const DIETARY = ['All', 'Halal', 'Vegetarian', 'Vegan', 'Gluten-Free'];
 
-const AMBIENCE = ['All', 'Rooftop', 'Cozy', 'Outdoor Dining', 'Romantic', 'Waterfront'];
+const AMBIENCE = [
+    'All',
+    'Rooftop',
+    'Cozy',
+    'Outdoor Dining',
+    'Romantic',
+    'Waterfront',
+];
 
-const OCCASIONS = ['All', 'Date Night', 'Birthday', 'Family Gathering', 'Business Lunch'];
+const OCCASIONS = [
+    'All',
+    'Date Night',
+    'Birthday',
+    'Family Gathering',
+    'Business Lunch',
+];
 
 export default function FilterBar({
     cuisineFilter,
@@ -77,6 +92,7 @@ export default function FilterBar({
     openNowFilter,
     onOpenNowToggle,
     onClearAll,
+    onOpenChange,
     className = '',
 }: FilterBarProps) {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -95,29 +111,61 @@ export default function FilterBar({
     // Close dropdown on click outside
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(e.target as Node)
+            ) {
                 setOpenDropdown(null);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () =>
+            document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (
+            openDropdown === null ||
+            !window.matchMedia('(max-width: 767px)').matches
+        ) {
+            return;
+        }
+
+        const previousBodyOverflow = document.body.style.overflow;
+        const previousDocumentOverflow =
+            document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previousBodyOverflow;
+            document.documentElement.style.overflow = previousDocumentOverflow;
+        };
+    }, [openDropdown]);
+
+    useEffect(() => {
+        onOpenChange?.(openDropdown !== null);
+    }, [onOpenChange, openDropdown]);
 
     const toggleDropdown = (name: string) => {
         setOpenDropdown((prev) => (prev === name ? null : name));
     };
 
     return (
-        <div ref={containerRef} className={`relative w-full ${openDropdown !== null ? 'z-[500]' : 'z-20'} ${className}`}>
+        <div
+            ref={containerRef}
+            className={`relative w-full ${openDropdown !== null ? 'z-[500]' : 'z-20'} ${className}`}
+        >
             <div className="flex items-center justify-start w-full py-1 gap-2 overflow-x-auto md:overflow-visible no-scrollbar scroll-smooth whitespace-nowrap md:whitespace-normal pb-2 md:pb-1 md:flex-wrap">
                 {/* 1. All Filters Toggle Button */}
                 <button
                     type="button"
                     onClick={() => toggleDropdown('all')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all flex-shrink-0 cursor-pointer relative z-50 ${activeFilterCount > 0
-                        ? 'bg-orange-500 text-white border-orange-500 shadow-md'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm hover:shadow'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all flex-shrink-0 cursor-pointer relative z-50 ${
+                        activeFilterCount > 0
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-md'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm hover:shadow'
+                    }`}
                 >
                     <SlidersHorizontal size={16} />
                     <span>Filters</span>
@@ -132,13 +180,23 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('cuisine')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${cuisineFilter !== 'All'
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        cuisineFilter !== 'All'
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Utensils size={16} className={cuisineFilter !== 'All' ? 'text-orange-500' : 'text-gray-500'} />
-                    <span>{cuisineFilter !== 'All' ? cuisineFilter : 'Cuisine'}</span>
+                    <Utensils
+                        size={16}
+                        className={
+                            cuisineFilter !== 'All'
+                                ? 'text-orange-500'
+                                : 'text-gray-500'
+                        }
+                    />
+                    <span>
+                        {cuisineFilter !== 'All' ? cuisineFilter : 'Cuisine'}
+                    </span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
 
@@ -146,12 +204,20 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('price')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${priceFilter !== 'All'
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        priceFilter !== 'All'
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Tag size={16} className={priceFilter !== 'All' ? 'text-orange-500' : 'text-gray-500'} />
+                    <Tag
+                        size={16}
+                        className={
+                            priceFilter !== 'All'
+                                ? 'text-orange-500'
+                                : 'text-gray-500'
+                        }
+                    />
                     <span>{priceFilter !== 'All' ? priceFilter : 'Price'}</span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
@@ -160,13 +226,23 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('rating')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${ratingFilter > 0
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        ratingFilter > 0
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Star size={16} className={ratingFilter > 0 ? 'fill-orange-400 text-orange-400' : 'text-gray-500'} />
-                    <span>{ratingFilter > 0 ? `${ratingFilter}+ ⭐` : 'Rating'}</span>
+                    <Star
+                        size={16}
+                        className={
+                            ratingFilter > 0
+                                ? 'fill-orange-400 text-orange-400'
+                                : 'text-gray-500'
+                        }
+                    />
+                    <span>
+                        {ratingFilter > 0 ? `${ratingFilter}+ ⭐` : 'Rating'}
+                    </span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
 
@@ -174,13 +250,23 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('dietary')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${dietaryFilter !== 'All'
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        dietaryFilter !== 'All'
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Leaf size={16} className={dietaryFilter !== 'All' ? 'text-orange-500' : 'text-gray-500'} />
-                    <span>{dietaryFilter !== 'All' ? dietaryFilter : 'Dietary'}</span>
+                    <Leaf
+                        size={16}
+                        className={
+                            dietaryFilter !== 'All'
+                                ? 'text-orange-500'
+                                : 'text-gray-500'
+                        }
+                    />
+                    <span>
+                        {dietaryFilter !== 'All' ? dietaryFilter : 'Dietary'}
+                    </span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
 
@@ -188,13 +274,23 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('ambience')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${ambienceFilter !== 'All'
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        ambienceFilter !== 'All'
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Flame size={16} className={ambienceFilter !== 'All' ? 'text-orange-500' : 'text-gray-500'} />
-                    <span>{ambienceFilter !== 'All' ? ambienceFilter : 'Ambience'}</span>
+                    <Flame
+                        size={16}
+                        className={
+                            ambienceFilter !== 'All'
+                                ? 'text-orange-500'
+                                : 'text-gray-500'
+                        }
+                    />
+                    <span>
+                        {ambienceFilter !== 'All' ? ambienceFilter : 'Ambience'}
+                    </span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
 
@@ -202,13 +298,23 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={() => toggleDropdown('occasion')}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${occasionFilter !== 'All'
-                        ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all cursor-pointer flex-shrink-0 relative z-50 ${
+                        occasionFilter !== 'All'
+                            ? 'bg-orange-50 text-orange-600 border-orange-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Gift size={16} className={occasionFilter !== 'All' ? 'text-orange-500' : 'text-gray-500'} />
-                    <span>{occasionFilter !== 'All' ? occasionFilter : 'Occasion'}</span>
+                    <Gift
+                        size={16}
+                        className={
+                            occasionFilter !== 'All'
+                                ? 'text-orange-500'
+                                : 'text-gray-500'
+                        }
+                    />
+                    <span>
+                        {occasionFilter !== 'All' ? occasionFilter : 'Occasion'}
+                    </span>
                     <ChevronDown size={15} className="text-gray-400" />
                 </button>
 
@@ -216,12 +322,18 @@ export default function FilterBar({
                 <button
                     type="button"
                     onClick={onOpenNowToggle}
-                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all flex-shrink-0 cursor-pointer relative z-50 ${openNowFilter
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
-                        }`}
+                    className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-semibold border transition-all flex-shrink-0 cursor-pointer relative z-50 ${
+                        openNowFilter
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
                 >
-                    <Clock size={16} className={openNowFilter ? 'text-emerald-600' : 'text-gray-500'} />
+                    <Clock
+                        size={16}
+                        className={
+                            openNowFilter ? 'text-emerald-600' : 'text-gray-500'
+                        }
+                    />
                     <span>Open now</span>
                 </button>
 
@@ -244,8 +356,14 @@ export default function FilterBar({
             {openDropdown === 'cuisine' && (
                 <div className="absolute top-full left-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Select Cuisine</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Select Cuisine
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -257,11 +375,16 @@ export default function FilterBar({
                                 onCuisineChange(c);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${cuisineFilter === c ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                cuisineFilter === c
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{c}</span>
-                            {cuisineFilter === c && <Check size={16} className="text-orange-500" />}
+                            {cuisineFilter === c && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
@@ -271,8 +394,14 @@ export default function FilterBar({
             {openDropdown === 'price' && (
                 <div className="absolute top-full left-0 sm:left-24 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Price Range</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Price Range
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -284,11 +413,16 @@ export default function FilterBar({
                                 onPriceChange(p);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${priceFilter === p ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                priceFilter === p
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{p}</span>
-                            {priceFilter === p && <Check size={16} className="text-orange-500" />}
+                            {priceFilter === p && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
@@ -298,8 +432,14 @@ export default function FilterBar({
             {openDropdown === 'rating' && (
                 <div className="absolute top-full left-0 sm:left-48 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Minimum Rating</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Minimum Rating
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -311,11 +451,16 @@ export default function FilterBar({
                                 onRatingChange(r.value);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${ratingFilter === r.value ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                ratingFilter === r.value
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{r.label}</span>
-                            {ratingFilter === r.value && <Check size={16} className="text-orange-500" />}
+                            {ratingFilter === r.value && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
@@ -325,8 +470,14 @@ export default function FilterBar({
             {openDropdown === 'dietary' && (
                 <div className="absolute top-full left-0 sm:left-72 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Dietary</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Dietary
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -338,11 +489,16 @@ export default function FilterBar({
                                 onDietaryChange(d);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${dietaryFilter === d ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                dietaryFilter === d
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{d}</span>
-                            {dietaryFilter === d && <Check size={16} className="text-orange-500" />}
+                            {dietaryFilter === d && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
@@ -352,8 +508,14 @@ export default function FilterBar({
             {openDropdown === 'ambience' && (
                 <div className="absolute top-full left-0 sm:left-96 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Ambience</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Ambience
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -365,11 +527,16 @@ export default function FilterBar({
                                 onAmbienceChange(a);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${ambienceFilter === a ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                ambienceFilter === a
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{a}</span>
-                            {ambienceFilter === a && <Check size={16} className="text-orange-500" />}
+                            {ambienceFilter === a && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
@@ -379,8 +546,14 @@ export default function FilterBar({
             {openDropdown === 'occasion' && (
                 <div className="absolute top-full right-0 sm:right-auto sm:left-[450px] mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl p-2 shadow-2xl border border-gray-100 z-[95] animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100 mb-1">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Occasion</span>
-                        <button type="button" onClick={() => setOpenDropdown(null)} className="text-gray-400 hover:text-gray-600">
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                            Occasion
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setOpenDropdown(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
                             <X size={14} />
                         </button>
                     </div>
@@ -392,220 +565,277 @@ export default function FilterBar({
                                 onOccasionChange(o);
                                 setOpenDropdown(null);
                             }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${occasionFilter === o ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-colors cursor-pointer ${
+                                occasionFilter === o
+                                    ? 'bg-orange-50 text-orange-600 font-bold'
+                                    : 'hover:bg-gray-50 text-gray-700'
+                            }`}
                         >
                             <span>{o}</span>
-                            {occasionFilter === o && <Check size={16} className="text-orange-500" />}
+                            {occasionFilter === o && (
+                                <Check size={16} className="text-orange-500" />
+                            )}
                         </button>
                     ))}
                 </div>
             )}
 
             {/* 10. Comprehensive All-Filters Drawer / Modal */}
-            {openDropdown === 'all' && (
-                <div className="fixed inset-0 z-[600] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4 animate-in fade-in duration-200">
-                    {/* Backdrop */}
-                    <div className="absolute inset-0" onClick={() => setOpenDropdown(null)} />
+            <AnimatePresence>
+                {openDropdown === 'all' && (
+                    <motion.div
+                        className="fixed inset-0 z-[600] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0"
+                            onClick={() => setOpenDropdown(null)}
+                        />
 
-                    {/* Modal Card */}
-                    <div className="relative w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl p-5 md:p-6 shadow-2xl z-[610] max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-200">
-                        {/* Header */}
-                        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-                            <div className="flex items-center gap-2">
-                                <SlidersHorizontal size={18} className="text-orange-500" />
-                                <h3 className="text-lg font-bold text-gray-900">All Filters</h3>
-                                {activeFilterCount > 0 && (
-                                    <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setOpenDropdown(null)}
-                                className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        {/* Body */}
-                        <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1 no-scrollbar">
-                            {/* Cuisine */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Cuisine
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {CUISINES.map((c) => (
-                                        <button
-                                            key={c}
-                                            type="button"
-                                            onClick={() => onCuisineChange(c)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${cuisineFilter === c
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Price */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Price Range
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {PRICES.map((p) => (
-                                        <button
-                                            key={p}
-                                            type="button"
-                                            onClick={() => onPriceChange(p)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${priceFilter === p
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {p}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Rating */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Minimum Rating
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {RATINGS.map((r) => (
-                                        <button
-                                            key={r.label}
-                                            type="button"
-                                            onClick={() => onRatingChange(r.value)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${ratingFilter === r.value
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {r.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Dietary */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Dietary Requirements
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {DIETARY.map((d) => (
-                                        <button
-                                            key={d}
-                                            type="button"
-                                            onClick={() => onDietaryChange(d)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${dietaryFilter === d
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {d}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Ambience */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Ambience & Vibe
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {AMBIENCE.map((a) => (
-                                        <button
-                                            key={a}
-                                            type="button"
-                                            onClick={() => onAmbienceChange(a)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${ambienceFilter === a
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {a}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Occasion */}
-                            <div>
-                                <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
-                                    Occasion
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {OCCASIONS.map((o) => (
-                                        <button
-                                            key={o}
-                                            type="button"
-                                            onClick={() => onOccasionChange(o)}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${occasionFilter === o
-                                                ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {o}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Open Now Toggle */}
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                                <div>
-                                    <p className="text-sm font-bold text-gray-800">Open Now Only</p>
-                                    <p className="text-xs text-gray-400">Show restaurants currently open</p>
+                        {/* Modal Card */}
+                        <motion.div
+                            className="relative w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl p-5 md:p-6 shadow-2xl z-[610] max-h-[85vh] flex flex-col"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{
+                                type: 'tween',
+                                duration: 0.3,
+                                ease: 'easeOut',
+                            }}
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <SlidersHorizontal
+                                        size={18}
+                                        className="text-orange-500"
+                                    />
+                                    <h3 className="text-lg font-bold text-gray-900">
+                                        All Filters
+                                    </h3>
+                                    {activeFilterCount > 0 && (
+                                        <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={onOpenNowToggle}
-                                    className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ease-in-out ${openNowFilter ? 'bg-emerald-500' : 'bg-gray-200'
-                                        }`}
+                                    onClick={() => setOpenDropdown(null)}
+                                    className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                                 >
-                                    <div
-                                        className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${openNowFilter ? 'translate-x-5' : 'translate-x-0'
-                                            }`}
-                                    />
+                                    <X size={18} />
                                 </button>
                             </div>
-                        </div>
 
-                        {/* Footer */}
-                        <div className="pt-4 border-t border-gray-100 flex items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onClearAll();
-                                }}
-                                className="flex-1 py-3 text-center text-sm font-bold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                            >
-                                Clear All
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setOpenDropdown(null)}
-                                className="flex-[2] py-3 text-center text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-xl shadow-md transition-colors"
-                            >
-                                Show Results
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                            {/* Body */}
+                            <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1 no-scrollbar">
+                                {/* Cuisine */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Cuisine
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CUISINES.map((c) => (
+                                            <button
+                                                key={c}
+                                                type="button"
+                                                onClick={() =>
+                                                    onCuisineChange(c)
+                                                }
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    cuisineFilter === c
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {c}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Price */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Price Range
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {PRICES.map((p) => (
+                                            <button
+                                                key={p}
+                                                type="button"
+                                                onClick={() => onPriceChange(p)}
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    priceFilter === p
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {p}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Rating */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Minimum Rating
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {RATINGS.map((r) => (
+                                            <button
+                                                key={r.label}
+                                                type="button"
+                                                onClick={() =>
+                                                    onRatingChange(r.value)
+                                                }
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    ratingFilter === r.value
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {r.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Dietary */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Dietary Requirements
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {DIETARY.map((d) => (
+                                            <button
+                                                key={d}
+                                                type="button"
+                                                onClick={() =>
+                                                    onDietaryChange(d)
+                                                }
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    dietaryFilter === d
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {d}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Ambience */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Ambience & Vibe
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {AMBIENCE.map((a) => (
+                                            <button
+                                                key={a}
+                                                type="button"
+                                                onClick={() =>
+                                                    onAmbienceChange(a)
+                                                }
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    ambienceFilter === a
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {a}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Occasion */}
+                                <div>
+                                    <label className="text-xs font-extrabold text-gray-400 uppercase tracking-wider block mb-2.5">
+                                        Occasion
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {OCCASIONS.map((o) => (
+                                            <button
+                                                key={o}
+                                                type="button"
+                                                onClick={() =>
+                                                    onOccasionChange(o)
+                                                }
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                                                    occasionFilter === o
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {o}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Open Now Toggle */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-800">
+                                            Open Now Only
+                                        </p>
+                                        <p className="text-xs text-gray-400">
+                                            Show restaurants currently open
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={onOpenNowToggle}
+                                        className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                                            openNowFilter
+                                                ? 'bg-emerald-500'
+                                                : 'bg-gray-200'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
+                                                openNowFilter
+                                                    ? 'translate-x-5'
+                                                    : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="pt-4 border-t border-gray-100 flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onClearAll();
+                                    }}
+                                    className="flex-1 py-3 text-center text-sm font-bold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                                >
+                                    Clear All
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenDropdown(null)}
+                                    className="flex-[2] py-3 text-center text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-xl shadow-md transition-colors"
+                                >
+                                    Show Results
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
