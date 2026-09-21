@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    Search,
     MapPin,
     ChevronDown,
     Users,
@@ -142,23 +141,6 @@ export default function CustomerHeader({
                     </div>
 
                     <div className="flex items-center gap-3 md:gap-5">
-                        <button
-                            onClick={() => {
-                                analytics.track('search_clicked', {
-                                    source: 'header',
-                                });
-                                if (onSearchClick) {
-                                    onSearchClick();
-                                } else {
-                                    router.push('/search');
-                                }
-                            }}
-                            className="flex items-center justify-center p-2 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors"
-                            aria-label="Search"
-                            title="Search"
-                        >
-                            <Search size={20} />
-                        </button>
 
                         <button
                             onClick={() => {

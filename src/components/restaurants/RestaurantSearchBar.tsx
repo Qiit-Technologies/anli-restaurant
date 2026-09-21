@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Restaurant } from '@/services/restaurant.service';
+import { Restaurant, restaurantService } from '@/services/restaurant.service';
 import { analytics } from '@/lib/mixpanel';
 
 interface RestaurantSearchBarProps {
@@ -55,6 +55,11 @@ export default function RestaurantSearchBar({
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Server-fetched autocomplete results (includes scraped restaurants)
+    const [serverResults, setServerResults] = useState<Restaurant[]>([]);
+    const [serverLoading, setServerLoading] = useState(false);
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Handle click outside to close popovers
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -65,6 +70,41 @@ export default function RestaurantSearchBar({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // Debounced server search – mirrors what the /search page does
+    useEffect(() => {
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+
+        if (!searchQuery.trim()) {
+            setServerResults([]);
+            setServerLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+        setServerLoading(true);
+        searchTimerRef.current = setTimeout(async () => {
+            try {
+                const res = await restaurantService.search(
+                    searchQuery.trim(),
+                    undefined,
+                    1,
+                    8,
+                );
+                if (!cancelled) setServerResults(res.restaurants);
+            } catch {
+                // fall back to local filter silently
+                if (!cancelled) setServerResults([]);
+            } finally {
+                if (!cancelled) setServerLoading(false);
+            }
+        }, 300);
+
+        return () => {
+            cancelled = true;
+            if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        };
+    }, [searchQuery]);
 
     const handleSearchSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -82,14 +122,21 @@ export default function RestaurantSearchBar({
         router.push(`/search?${params.toString()}`);
     };
 
-    // Filter matching restaurants for autocomplete
-    const matchingRestaurants = searchQuery.trim()
+    // Merge server results (includes scraped) with local prop-based filter.
+    // Server results take priority; append any local-only matches after deduplication.
+    const localMatches = searchQuery.trim()
         ? restaurants.filter(
               (r) =>
                   r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   r.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   r.address?.toLowerCase().includes(searchQuery.toLowerCase()),
           )
+        : [];
+
+    const serverIds = new Set(serverResults.map((r) => r.id));
+    const extraLocal = localMatches.filter((r) => !serverIds.has(r.id));
+    const matchingRestaurants = searchQuery.trim()
+        ? [...serverResults, ...extraLocal]
         : [];
 
     return (
@@ -272,12 +319,20 @@ export default function RestaurantSearchBar({
                     {/* Autocomplete Results */}
                     {searchQuery.trim() && (
                         <div className="border-t border-gray-100 pt-3">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">
-                                Matching Restaurants ({matchingRestaurants.length})
-                            </p>
+                            <div className="flex items-center justify-between mb-2 px-1">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Matching Restaurants ({matchingRestaurants.length})
+                                </p>
+                                {serverLoading && (
+                                    <span className="flex items-center gap-1 text-[10px] text-orange-400 font-medium">
+                                        <span className="w-2 h-2 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                                        Searching...
+                                    </span>
+                                )}
+                            </div>
                             {matchingRestaurants.length > 0 ? (
                                 <div className="max-h-60 overflow-y-auto space-y-1">
-                                    {matchingRestaurants.slice(0, 5).map((res) => {
+                                    {matchingRestaurants.slice(0, 6).map((res) => {
                                         const isBookable = res.isBookable !== false;
                                         const slug = (res.name || 'restaurant')
                                             .toLowerCase()
@@ -338,6 +393,18 @@ export default function RestaurantSearchBar({
                                     >
                                         See all results for &quot;{searchQuery}&quot; &rarr;
                                     </button>
+                                </div>
+                            ) : serverLoading ? (
+                                <div className="space-y-2 py-1">
+                                    {[1, 2, 3].map((i) => (
+                                        <div key={i} className="flex items-center gap-3 px-3 py-2 animate-pulse">
+                                            <div className="w-9 h-9 rounded-lg bg-gray-200 flex-shrink-0" />
+                                            <div className="flex-1 space-y-1.5">
+                                                <div className="h-2.5 bg-gray-200 rounded-full w-3/4" />
+                                                <div className="h-2 bg-gray-100 rounded-full w-1/2" />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             ) : (
                                 <p className="text-xs text-gray-400 py-2 text-center">

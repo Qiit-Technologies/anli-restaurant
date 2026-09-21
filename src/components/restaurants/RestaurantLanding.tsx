@@ -28,6 +28,12 @@ import RestaurantSearchBar from './RestaurantSearchBar';
 import FilterBar from './FilterBar';
 import Footer from './Footer';
 import toast from 'react-hot-toast';
+import {
+    RestaurantCardSkeleton,
+    FilterBarSkeleton,
+    SectionHeadingSkeleton,
+    HeroBannerSkeleton,
+} from '@/components/ui/Skeleton';
 
 export default function RestaurantLanding() {
     const router = useRouter();
@@ -411,29 +417,35 @@ export default function RestaurantLanding() {
                 <div className="max-w-7xl mx-auto px-4 md:px-8 pt-3 md:pt-10">
                     {/* ── DESKTOP Hero Banner (hidden on mobile) ── */}
                     <section className="relative w-full mb-8 hidden md:block rounded-[24px]">
-                        {/* Banner Image Container with rounded corners */}
-                        <div className="relative w-full h-[260px] md:h-[300px] rounded-[24px] overflow-hidden shadow-md bg-[#0A0A0A]">
-                            <Image
-                                src="/landing/home-banner.png"
-                                alt="Explore the best Restaurant closest to you"
-                                fill
-                                className="object-cover object-center"
-                                priority
-                            />
-                            {/* Dark gradient overlay */}
-                            <div className="absolute inset-0 " />
-                        </div>
+                        {loading ? (
+                            <HeroBannerSkeleton />
+                        ) : (
+                            <>
+                                {/* Banner Image Container with rounded corners */}
+                                <div className="relative w-full h-[260px] md:h-[300px] rounded-[24px] overflow-hidden shadow-md bg-[#0A0A0A]">
+                                    <Image
+                                        src="/landing/home-banner.png"
+                                        alt="Explore the best Restaurant closest to you"
+                                        fill
+                                        className="object-cover object-center"
+                                        priority
+                                    />
+                                    {/* Dark gradient overlay */}
+                                    <div className="absolute inset-0 " />
+                                </div>
 
-                        {/* Search bar INSIDE hero image (bottom-left as in screenshot) */}
-                        <div className="absolute bottom-6 left-6 right-6 z-[300] max-w-3xl">
-                            <RestaurantSearchBar
-                                searchQuery={searchQuery}
-                                onSearchQueryChange={setSearchQuery}
-                                locationName={locationName}
-                                onLocationChange={setLocationName}
-                                restaurants={restaurants}
-                            />
-                        </div>
+                                {/* Search bar INSIDE hero image (bottom-left as in screenshot) */}
+                                <div className="absolute bottom-6 left-6 right-6 z-[300] max-w-3xl">
+                                    <RestaurantSearchBar
+                                        searchQuery={searchQuery}
+                                        onSearchQueryChange={setSearchQuery}
+                                        locationName={locationName}
+                                        onLocationChange={setLocationName}
+                                        restaurants={restaurants}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </section>
 
                     {/* ── MOBILE Banner + Search (hidden on desktop) ── */}
@@ -491,58 +503,59 @@ export default function RestaurantLanding() {
                     </section>
                 </div>
 
-                {/* ── Full Width Filters Bar (from design screenshot) ── */}
+                {/* ── Full Width Filters Bar ── */}
                 <div
                     className={`max-w-7xl mx-auto px-4 md:px-8 my-2 md:my-4 relative ${filtersOpen ? 'z-[800]' : 'z-[600]'} md:z-20`}
                 >
-                    <FilterBar
-                        cuisineFilter={cuisineFilter}
-                        onCuisineChange={setCuisineFilter}
-                        priceFilter={priceFilter}
-                        onPriceChange={setPriceFilter}
-                        ratingFilter={ratingFilter}
-                        onRatingChange={setRatingFilter}
-                        dietaryFilter={dietaryFilter}
-                        onDietaryChange={setDietaryFilter}
-                        ambienceFilter={ambienceFilter}
-                        onAmbienceChange={setAmbienceFilter}
-                        occasionFilter={occasionFilter}
-                        onOccasionChange={setOccasionFilter}
-                        openNowFilter={openNowFilter}
-                        onOpenNowToggle={() =>
-                            setOpenNowFilter((prev) => !prev)
-                        }
-                        onOpenChange={setFiltersOpen}
-                        onClearAll={() => {
-                            setCuisineFilter('All');
-                            setPriceFilter('All');
-                            setRatingFilter(0);
-                            setDietaryFilter('All');
-                            setAmbienceFilter('All');
-                            setOccasionFilter('All');
-                            setOpenNowFilter(false);
-                        }}
-                    />
+                    {loading ? (
+                        <FilterBarSkeleton />
+                    ) : (
+                        <FilterBar
+                            cuisineFilter={cuisineFilter}
+                            onCuisineChange={setCuisineFilter}
+                            priceFilter={priceFilter}
+                            onPriceChange={setPriceFilter}
+                            ratingFilter={ratingFilter}
+                            onRatingChange={setRatingFilter}
+                            dietaryFilter={dietaryFilter}
+                            onDietaryChange={setDietaryFilter}
+                            ambienceFilter={ambienceFilter}
+                            onAmbienceChange={setAmbienceFilter}
+                            occasionFilter={occasionFilter}
+                            onOccasionChange={setOccasionFilter}
+                            openNowFilter={openNowFilter}
+                            onOpenNowToggle={() =>
+                                setOpenNowFilter((prev) => !prev)
+                            }
+                            onOpenChange={setFiltersOpen}
+                            onClearAll={() => {
+                                setCuisineFilter('All');
+                                setPriceFilter('All');
+                                setRatingFilter(0);
+                                setDietaryFilter('All');
+                                setAmbienceFilter('All');
+                                setOccasionFilter('All');
+                                setOpenNowFilter(false);
+                            }}
+                        />
+                    )}
                 </div>
 
                 {/* Featured Section */}
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <section className="mb-12">
-                        <h2 className="text-xl md:text-2xl font-bold text-[#3D2117] mb-6">
-                            Featured Restaurant
-                        </h2>
-
                         {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="bg-gray-200 h-64 rounded-[24px] animate-pulse"
-                                    ></div>
-                                ))}
-                            </div>
+                            <>
+                                <SectionHeadingSkeleton />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <RestaurantCardSkeleton count={3} />
+                                </div>
+                            </>
                         ) : (
                             <>
+                                <h2 className="text-xl md:text-2xl font-bold text-[#3D2117] mb-6">
+                                    Featured Restaurant
+                                </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {filteredRestaurants
                                         .slice(0, visibleCount)
@@ -618,68 +631,72 @@ export default function RestaurantLanding() {
                 {/* Full Width Nearby Section */}
                 <section className="bg-[#1A1A1A] py-12 mb-10">
                     <div className="max-w-7xl mx-auto px-4 md:px-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                            <h2 className="text-xl md:text-2xl font-bold text-white">
-                                Restaurant closest to you
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {nearbyLoading
-                                ? [1, 2, 3].map((i) => (
-                                      <div
-                                          key={i}
-                                          className="bg-white/10 h-64 rounded-[24px] animate-pulse"
-                                      ></div>
-                                  ))
-                                : filteredNearbyRestaurants
-                                      .slice(0, visibleCount)
-                                      .map((res) => (
-                                          <RestaurantCard
-                                              key={res.id}
-                                              restaurant={res}
-                                              isFavorite={favorites.includes(
-                                                  res.id,
-                                              )}
-                                              dark
-                                          />
-                                      ))}
-                        </div>
-                        {filteredNearbyRestaurants.length > visibleCount && (
-                            <div className="flex justify-center mt-8">
-                                <button
-                                    onClick={async () => {
-                                        if (isSearching) {
-                                            const nextPage =
-                                                Math.ceil(visibleCount / 20) +
-                                                1;
-                                            try {
-                                                const data =
-                                                    await restaurantService.search(
-                                                        debouncedQuery.trim(),
-                                                        undefined,
-                                                        nextPage,
-                                                        20,
-                                                    );
-                                                setSearchResults((prev) => [
-                                                    ...prev,
-                                                    ...data.restaurants,
-                                                ]);
-                                            } catch {
-                                                toast.error(
-                                                    'Failed to load more results',
-                                                );
-                                            }
-                                        }
-                                        setVisibleCount((prev) => prev + 6);
-                                    }}
-                                    className="px-6 py-2.5 rounded-full border border-orange-500 text-orange-500 font-medium text-sm hover:bg-orange-50 transition-colors"
-                                >
-                                    Show More (
-                                    {filteredNearbyRestaurants.length -
-                                        visibleCount}{' '}
-                                    remaining)
-                                </button>
-                            </div>
+                        {loading || nearbyLoading ? (
+                            <>
+                                <SectionHeadingSkeleton dark />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <RestaurantCardSkeleton dark count={3} />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                    <h2 className="text-xl md:text-2xl font-bold text-white">
+                                        Restaurant closest to you
+                                    </h2>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredNearbyRestaurants
+                                        .slice(0, visibleCount)
+                                        .map((res) => (
+                                            <RestaurantCard
+                                                key={res.id}
+                                                restaurant={res}
+                                                isFavorite={favorites.includes(
+                                                    res.id,
+                                                )}
+                                                dark
+                                            />
+                                        ))}
+                                </div>
+                                {filteredNearbyRestaurants.length > visibleCount && (
+                                    <div className="flex justify-center mt-8">
+                                        <button
+                                            onClick={async () => {
+                                                if (isSearching) {
+                                                    const nextPage =
+                                                        Math.ceil(visibleCount / 20) +
+                                                        1;
+                                                    try {
+                                                        const data =
+                                                            await restaurantService.search(
+                                                                debouncedQuery.trim(),
+                                                                undefined,
+                                                                nextPage,
+                                                                20,
+                                                            );
+                                                        setSearchResults((prev) => [
+                                                            ...prev,
+                                                            ...data.restaurants,
+                                                        ]);
+                                                    } catch {
+                                                        toast.error(
+                                                            'Failed to load more results',
+                                                        );
+                                                    }
+                                                }
+                                                setVisibleCount((prev) => prev + 6);
+                                            }}
+                                            className="px-6 py-2.5 rounded-full border border-orange-500 text-orange-500 font-medium text-sm hover:bg-orange-50 transition-colors"
+                                        >
+                                            Show More (
+                                            {filteredNearbyRestaurants.length -
+                                                visibleCount}{' '}
+                                            remaining)
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </section>
@@ -687,20 +704,31 @@ export default function RestaurantLanding() {
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     {/* Other Section */}
                     <section className="mb-12">
-                        <h2 className="text-xl md:text-2xl font-bold text-[#3D2117] mb-6">
-                            Other Fine dining Restaurant
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredRestaurants
-                                .slice(0, visibleCount)
-                                .map((res) => (
-                                    <RestaurantCard
-                                        key={res.id}
-                                        restaurant={res}
-                                        isFavorite={favorites.includes(res.id)}
-                                    />
-                                ))}
-                        </div>
+                        {loading ? (
+                            <>
+                                <SectionHeadingSkeleton />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <RestaurantCardSkeleton count={3} />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-xl md:text-2xl font-bold text-[#3D2117] mb-6">
+                                    Other Fine dining Restaurant
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {filteredRestaurants
+                                        .slice(0, visibleCount)
+                                        .map((res) => (
+                                            <RestaurantCard
+                                                key={res.id}
+                                                restaurant={res}
+                                                isFavorite={favorites.includes(res.id)}
+                                            />
+                                        ))}
+                                </div>
+                            </>
+                        )}
                     </section>
                 </div>
             </main>
