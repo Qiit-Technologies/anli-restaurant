@@ -39,12 +39,14 @@ interface RestaurantDetailProps {
     id: string;
     slug?: string;
     hotelName?: string;
+    isScraped?: boolean;
 }
 
 export default function RestaurantDetail({
     id,
     slug,
     hotelName,
+    isScraped,
 }: RestaurantDetailProps) {
     const router = useRouter();
     const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -100,7 +102,7 @@ export default function RestaurantDetail({
         const fetchData = async () => {
             try {
                 const restaurantId = Number(id);
-                const restaurantData = await restaurantService.getDetails(restaurantId);
+                const restaurantData = await restaurantService.getDetails(restaurantId, isScraped);
                 setRestaurant(restaurantData);
                 try {
                     const menuData = await restaurantService.getMenu(restaurantId);

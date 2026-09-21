@@ -17,9 +17,10 @@ import CustomerHeader from './CustomerHeader';
 interface RestaurantMenuProps {
     id: string;
     hotelName?: string;
+    isScraped?: boolean;
 }
 
-export default function RestaurantMenu({ id, hotelName }: RestaurantMenuProps) {
+export default function RestaurantMenu({ id, hotelName, isScraped }: RestaurantMenuProps) {
     const router = useRouter();
     const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
     const [menu, setMenu] = useState<Menu[]>([]);
@@ -61,7 +62,7 @@ export default function RestaurantMenu({ id, hotelName }: RestaurantMenuProps) {
             try {
                 const restaurantId = Number(id);
                 const [restaurantData, menuData] = await Promise.all([
-                    restaurantService.getDetails(restaurantId),
+                    restaurantService.getDetails(restaurantId, isScraped),
                     restaurantService.getMenu(restaurantId),
                 ]);
                 setRestaurant(restaurantData);

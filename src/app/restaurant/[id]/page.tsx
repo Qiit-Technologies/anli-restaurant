@@ -16,5 +16,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ScrapedRestaurantPage({ params }: Props) {
     const { id } = await params;
     
-    return <RestaurantDetail id={id} />;
+    return <RestaurantDetail id={id} isScraped={true} />;
 }

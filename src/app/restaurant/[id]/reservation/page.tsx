@@ -19,7 +19,7 @@ export default async function ReservationPage({ params }: Props) {
     
     let restaurant;
     try {
-        restaurant = await restaurantService.getDetails(Number(id));
+        restaurant = await restaurantService.getDetails(Number(id), true);
     } catch (error) {
         console.error('Error fetching restaurant details:', error);
         return notFound();
