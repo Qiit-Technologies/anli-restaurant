@@ -351,7 +351,11 @@ export default function RestaurantSearchBar({
                                                         restaurant_name: res.name,
                                                         source: 'restaurant_search_bar',
                                                     });
-                                                    router.push(isBookable ? `/restaurants/${slug}` : `/restaurant/${res.id}`);
+                                                    router.push(
+                                                        isBookable && !res.isScraped
+                                                            ? `/restaurants/${slug}`
+                                                            : `/restaurant/${res.id}`,
+                                                    );
                                                 }}
                                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-orange-50 transition-colors text-left group"
                                             >

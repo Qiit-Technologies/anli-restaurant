@@ -342,7 +342,7 @@ export default function RestaurantDetail({
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        handleBookingClick(slug ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`)
+                                                        handleBookingClick(slug && !restaurant.isScraped ? `/restaurants/${slug}/reservation` : `/restaurant/${id}/reservation`)
                                                     }
                                                     className="px-6 py-2.5 bg-[#0085FF] hover:bg-blue-600 text-white font-bold text-xs md:text-sm rounded-lg shadow-md transition-all active:scale-95"
                                                 >
@@ -487,7 +487,7 @@ export default function RestaurantDetail({
                                                 {restaurant.name} Menu
                                             </h3>
                                             <Link
-                                                href={slug ? `/restaurants/${slug}/menu` : `/restaurant/${id}/menu`}
+                                                href={slug && !restaurant.isScraped ? `/restaurants/${slug}/menu` : `/restaurant/${id}/menu`}
                                                 className="text-orange-600 hover:text-orange-700 text-xs md:text-sm font-bold flex items-center gap-1 hover:underline"
                                             >
                                                 Full Menu <ChevronRight size={16} />

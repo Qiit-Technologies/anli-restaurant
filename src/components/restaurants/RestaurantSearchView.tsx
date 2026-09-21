@@ -697,7 +697,9 @@ export default function RestaurantSearchView({
                                             <Link
                                                 href={
                                                     isBookable
-                                                        ? `/restaurants/${slug}/reservation`
+                                                        ? (isScraped
+                                                               ? `/restaurant/${id}/reservation`
+                                                               : `/restaurants/${slug}/reservation`)
                                                         : `/restaurant/${id}/reservation`
                                                 }
                                                 className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm"
@@ -837,7 +839,9 @@ export default function RestaurantSearchView({
                                             <Link
                                                 href={
                                                     isBookable
-                                                        ? `/restaurants/${slug}/reservation`
+                                                        ? (isScraped
+                                                               ? `/restaurant/${id}/reservation`
+                                                               : `/restaurants/${slug}/reservation`)
                                                         : `/restaurant/${id}/reservation`
                                                 }
                                                 className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100"

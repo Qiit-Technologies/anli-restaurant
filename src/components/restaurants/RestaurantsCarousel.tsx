@@ -104,7 +104,16 @@ export default function RestaurantsCarousel({
                     {displayItems.map((item, idx) => {
                         const itemId = item.id || idx;
                         const isFav = localFavs[itemId] ?? favorites.includes(itemId);
-                        const href = item.id ? `/restaurants/${item.id}` : '#';
+                        const isScraped = item.isScraped === true;
+                        const slug = (item.name || 'restaurant')
+                            .toLowerCase()
+                            .trim()
+                            .replace(/\s+/g, '-')
+                            .replace(/[^\w-]+/g, '')
+                            .replace(/--+/g, '-') || 'restaurant';
+                        const href = isScraped || !item.isBookable
+                            ? `/restaurant/${item.id}`
+                            : `/restaurants/${slug}`;
 
                         return (
                             <div

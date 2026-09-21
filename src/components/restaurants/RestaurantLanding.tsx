@@ -849,9 +849,9 @@ function RestaurantCard({
             <div className="relative h-48 overflow-hidden group/slider">
                 <Link
                     href={
-                        restaurant.isBookable !== false
-                            ? `/restaurants/${hotelNameSlug}`
-                            : `/restaurant/${restaurant.id}`
+                        restaurant.isScraped || restaurant.isBookable === false
+                            ? `/restaurant/${restaurant.id}`
+                            : `/restaurants/${hotelNameSlug}`
                     }
                     className="block h-full w-full relative"
                 >
