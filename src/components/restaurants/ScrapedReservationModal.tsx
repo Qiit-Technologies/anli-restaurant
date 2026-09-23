@@ -49,7 +49,7 @@ export default function ScrapedReservationModal({
             const user = customerAuthService.getUser();
             if (user) {
                 const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-                setCustomerName(fullName || user.username || '');
+                setCustomerName(fullName || '');
                 setCustomerEmail(user.email || '');
                 setCustomerPhone(user.phoneNumber || '');
             }
@@ -82,22 +82,19 @@ export default function ScrapedReservationModal({
                 restaurant_name: restaurant.name,
             });
 
-            // Send notification to restaurant via API
-            await restaurantService.notifyScrapedRedirect(restaurant.id, {
+            // Send notification to restaurant via API in background ("underground")
+            restaurantService.notifyScrapedRedirect(restaurant.id, {
                 customerName,
                 customerEmail,
                 customerPhone,
+            }).catch((err) => {
+                console.error('Error sending redirect notification:', err);
             });
-
-            toast.success(
-                `Redirecting to ${restaurant.name}... We've alerted the restaurant by SMS & Email!`,
-                { duration: 4000 }
-            );
 
             window.open(formattedBookingUrl, '_blank', 'noopener,noreferrer');
             onClose();
         } catch (err) {
-            console.error('Error sending redirect notification:', err);
+            console.error('Error handling redirect:', err);
             window.open(formattedBookingUrl, '_blank', 'noopener,noreferrer');
             onClose();
         } finally {
@@ -136,7 +133,7 @@ export default function ScrapedReservationModal({
 
             if (res.success) {
                 setIsSubmitted(true);
-                toast.success('Reservation alert sent to restaurant!');
+                toast.success('Reservation request submitted successfully!');
             } else {
                 toast.error(res.message || 'Failed to submit reservation request');
             }
@@ -161,17 +158,15 @@ export default function ScrapedReservationModal({
                         <X size={18} />
                     </button>
 
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#FF6A00] flex items-center justify-center font-bold text-white shadow-md">
                             <Utensils size={20} />
                         </div>
                         <div>
-                            <span className="text-[11px] uppercase tracking-wider text-orange-400 font-semibold flex items-center gap-1">
-                                <Sparkles size={12} /> Scraped Partner Restaurant
-                            </span>
                             <h3 className="text-xl font-bold text-white truncate max-w-[280px]">
                                 {restaurant.name}
                             </h3>
+                            <p className="text-xs text-amber-200/80 font-medium">Table Reservation</p>
                         </div>
                     </div>
                 </div>
@@ -187,21 +182,18 @@ export default function ScrapedReservationModal({
                                 </div>
                                 <div className="text-xs text-gray-700 leading-relaxed">
                                     <p className="font-bold text-gray-900 mb-1 text-sm">
-                                        External Booking Platform Available
+                                        Reserve Table Online
                                     </p>
                                     <p>
-                                        <strong>{restaurant.name}</strong> accepts table bookings directly on their official platform.
-                                    </p>
-                                    <p className="mt-1.5 text-gray-600">
-                                        When you continue, we will instantly dispatch an <strong>SMS and Email alert</strong> to notify the restaurant of your referral.
+                                        Continue to <strong>{restaurant.name}</strong>'s official reservation portal to complete your table booking.
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Optional contact info input for alert */}
+                            {/* Optional contact info input */}
                             <div className="space-y-3 pt-1">
                                 <label className="block text-xs font-semibold text-gray-700">
-                                    Your Contact Info (Optional - sent in alert to restaurant):
+                                    Your Contact Info (Optional):
                                 </label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
@@ -241,17 +233,17 @@ export default function ScrapedReservationModal({
                                     {isSubmitting ? (
                                         <>
                                             <Loader2 size={18} className="animate-spin" />
-                                            <span>Notifying Restaurant...</span>
+                                            <span>Redirecting...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Proceed to Booking Platform</span>
+                                            <span>Proceed to Reservation</span>
                                             <ExternalLink size={16} />
                                         </>
                                     )}
                                 </button>
                                 <p className="text-center text-[11px] text-gray-400 mt-2">
-                                    Opens external platform link in new tab. Restaurant notified via SMS & Email.
+                                    Opens official reservation platform in a new tab.
                                 </p>
                             </div>
                         </div>
@@ -265,10 +257,10 @@ export default function ScrapedReservationModal({
                                     </div>
                                     <div>
                                         <h4 className="text-xl font-bold text-gray-900 mb-1">
-                                            Reservation Alert Sent!
+                                            Reservation Request Submitted!
                                         </h4>
                                         <p className="text-xs text-gray-600 max-w-sm mx-auto leading-relaxed">
-                                            We have collected your table preferences and sent an immediate <strong>SMS & Email alert</strong> directly to <strong>{restaurant.name}</strong>.
+                                            Your table reservation request for <strong>{restaurant.name}</strong> has been received successfully.
                                         </p>
                                     </div>
 
@@ -280,7 +272,7 @@ export default function ScrapedReservationModal({
                                     </div>
 
                                     <p className="text-[11px] text-gray-500">
-                                        The restaurant team will reach out to you directly at {customerPhone} or {customerEmail} to confirm your reservation.
+                                        The restaurant team will contact you directly at {customerPhone} or {customerEmail} to confirm your reservation.
                                     </p>
 
                                     <button
@@ -296,9 +288,9 @@ export default function ScrapedReservationModal({
                                     <div className="bg-amber-50 rounded-2xl p-3.5 border border-amber-200/60 text-xs text-amber-900 leading-snug flex items-start gap-2.5">
                                         <Send size={18} className="text-[#FF6A00] flex-shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="font-bold">Request a Reservation Table</p>
+                                            <p className="font-bold">Reserve a Table</p>
                                             <p className="text-[11px] text-amber-800 mt-0.5">
-                                                Complete your reservation request below. We will send an instant <strong>SMS and Email alert</strong> directly to {restaurant.name}'s management.
+                                                Complete your details below to request a reservation at {restaurant.name}.
                                             </p>
                                         </div>
                                     </div>
@@ -426,17 +418,17 @@ export default function ScrapedReservationModal({
                                             {isSubmitting ? (
                                                 <>
                                                     <Loader2 size={16} className="animate-spin" />
-                                                    <span>Sending Alert to Restaurant...</span>
+                                                    <span>Submitting Reservation...</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <Send size={15} />
-                                                    <span>Send Reservation & Alert Restaurant</span>
+                                                    <span>Confirm Reservation Request</span>
                                                 </>
                                             )}
                                         </button>
                                         <p className="text-center text-[10px] text-gray-400 mt-2">
-                                            Instant SMS & Email alert will be sent directly to {restaurant.name}
+                                            Your reservation details will be sent directly to {restaurant.name}.
                                         </p>
                                     </div>
                                 </form>
