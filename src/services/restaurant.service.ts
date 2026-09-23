@@ -1,4 +1,6 @@
 import api from '@/lib/axios';
+import { customerAuthService } from '@/services/customerAuth.service';
+import { analytics } from '@/lib/mixpanel';
 
 export interface Restaurant {
     id: number;
@@ -403,4 +405,58 @@ export const restaurantService = {
             };
         }
     },
+};
+
+/**
+  * Directly redirects to a scraped restaurant's booking URL if available,
+  * triggering underground SMS & Email notifications without showing any modal.
+  * If no booking URL is present, calls onOpenModal to collect reservation details.
+  */
+export const handleScrapedBooking = (
+    restaurant: Restaurant,
+    onOpenModal?: () => void
+): boolean => {
+    const rawBookingLink = restaurant.bookingUrl || restaurant.website;
+    const hasBookingPlatform = Boolean(
+        rawBookingLink &&
+        rawBookingLink.trim().length > 0 &&
+        !rawBookingLink.includes('example.com')
+    );
+
+    if (hasBookingPlatform && rawBookingLink) {
+        const user = customerAuthService.getUser();
+        const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+        const email = user?.email || '';
+        const phone = user?.phoneNumber || '';
+
+        try {
+            analytics.track('scraped_restaurant_redirect', {
+                restaurant_id: restaurant.id,
+                restaurant_name: restaurant.name,
+            });
+        } catch (err) {
+            console.error('Analytics error:', err);
+        }
+
+        // Send underground notification to restaurant via API
+        restaurantService.notifyScrapedRedirect(restaurant.id, {
+            customerName: fullName,
+            customerEmail: email,
+            customerPhone: phone,
+        }).catch((err) => {
+            console.error('Error sending redirect notification:', err);
+        });
+
+        const formattedBookingUrl = rawBookingLink.startsWith('http://') || rawBookingLink.startsWith('https://')
+            ? rawBookingLink
+            : `https://${rawBookingLink}`;
+
+        window.open(formattedBookingUrl, '_blank', 'noopener,noreferrer');
+        return true;
+    }
+
+    if (onOpenModal) {
+        onOpenModal();
+    }
+    return false;
 };
