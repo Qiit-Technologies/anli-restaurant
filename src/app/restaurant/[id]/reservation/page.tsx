@@ -30,7 +30,7 @@ export default async function ReservationPage({ params }: Props) {
     return (
         <>
             <ReservationHeader hotelName={restaurant.name} hotelLogo={restaurant.coverImage} />
-            <ReservationFormClient hotelId={id} />
+            <ReservationFormClient hotelId={id} isScraped={restaurant.isScraped} />
             <ReservationMap />
         </>
     );

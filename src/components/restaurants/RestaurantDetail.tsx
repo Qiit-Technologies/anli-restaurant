@@ -33,6 +33,7 @@ import {
 import { customerAuthService } from '@/services/customerAuth.service';
 import { analytics } from '@/lib/mixpanel';
 import CustomerHeader from './CustomerHeader';
+import ScrapedReservationModal from './ScrapedReservationModal';
 import toast from 'react-hot-toast';
 
 interface RestaurantDetailProps {
@@ -55,6 +56,7 @@ export default function RestaurantDetail({
     const [isFavorite, setIsFavorite] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+    const [isScrapedModalOpen, setIsScrapedModalOpen] = useState(false);
 
     const slideImages = React.useMemo(() => {
         if (restaurant?.images && restaurant.images.length > 0) {
@@ -324,22 +326,13 @@ export default function RestaurantDetail({
                                         {/* Action Buttons Row */}
                                         <div className="flex flex-wrap items-center gap-3 mt-4">
                                             {restaurant.isScraped || restaurant.isBookable === false ? (
-                                                <a
-                                                    href={
-                                                        (restaurant as any).website
-                                                            ? (restaurant as any).website.startsWith('http://') || (restaurant as any).website.startsWith('https://')
-                                                                ? (restaurant as any).website
-                                                                : `https://${(restaurant as any).website}`
-                                                            : website.startsWith('http://') || website.startsWith('https://')
-                                                                ? website
-                                                                : `https://${website}`
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsScrapedModalOpen(true)}
                                                     className="px-6 py-2.5 bg-[#FF8A00] hover:bg-orange-600 text-white font-bold text-xs md:text-sm rounded-lg shadow-md transition-all active:scale-95 inline-flex items-center gap-2 cursor-pointer"
                                                 >
                                                     Request a Reservation
-                                                </a>
+                                                </button>
                                             ) : (
                                                 <button
                                                     type="button"
@@ -714,6 +707,11 @@ export default function RestaurantDetail({
                             </div>
                         </div>
                     </main>
+                    <ScrapedReservationModal
+                        restaurant={restaurant}
+                        isOpen={isScrapedModalOpen}
+                        onClose={() => setIsScrapedModalOpen(false)}
+                    />
                 </>
             )}
         </div>

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 import { customerAuthService } from '@/services/customerAuth.service';
+import { restaurantService } from '@/services/restaurant.service';
 import { createPublicBooking } from '@/app/actions/booking';
 import Image from 'next/image';
 
@@ -60,9 +61,10 @@ const reservationSchema = z.object({
 
 interface ReservationFormProps {
     hotelId?: string;
+    isScraped?: boolean;
 }
 
-export default function ReservationForm({ hotelId }: ReservationFormProps) {
+export default function ReservationForm({ hotelId, isScraped }: ReservationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +121,30 @@ export default function ReservationForm({ hotelId }: ReservationFormProps) {
         }
         setIsSubmitting(true);
         const user = customerAuthService.getUser();
+
+        if (isScraped) {
+            const scrapedPayload = {
+                customerName: `${data.customerDetails.firstName} ${data.customerDetails.lastName}`.trim(),
+                customerEmail: data.customerDetails.email,
+                customerPhone: data.customerDetails.phone,
+                date: data.reservationDateTime.date,
+                time: data.reservationDateTime.time,
+                guestCount: Number(data.reservationDateTime.guestNumber || 1),
+                specialRequests: data.reservationDateTime.foodQuantity || '',
+                tableType: data.reservationDateTime.tableType,
+                reservationType: data.reservationDateTime.reservationType,
+            };
+            const response = await restaurantService.submitScrapedReservation(Number(hotelId), scrapedPayload);
+            setIsSubmitting(false);
+            if (response.success) {
+                toast.success('Reservation alert sent to restaurant!');
+                setShowSuccessModal(true);
+            } else {
+                toast.error(response.message);
+            }
+            return;
+        }
+
         const payload = {
             ...data.customerDetails,
             ...data.reservationDateTime,

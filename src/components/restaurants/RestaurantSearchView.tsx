@@ -15,6 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Restaurant } from '@/services/restaurant.service';
 import SearchEmptyIllustration from './SearchEmptyIllustration';
+import ScrapedReservationModal from './ScrapedReservationModal';
 import Footer from './Footer';
 import { analytics } from '@/lib/mixpanel';
 
@@ -72,6 +73,9 @@ export default function RestaurantSearchView({
 
     const [minPrice, setMinPrice] = useState('50,000');
     const [maxPrice, setMaxPrice] = useState('50,000');
+
+    const [selectedScrapedRestaurant, setSelectedScrapedRestaurant] = useState<Restaurant | null>(null);
+    const [isScrapedModalOpen, setIsScrapedModalOpen] = useState(false);
 
     const filteredResults = useMemo(() => {
         let list = [...restaurants];
@@ -666,33 +670,16 @@ export default function RestaurantSearchView({
                                         </div>
 
                                         {isScraped ? (
-                                            <a
-                                                href={
-                                                    res.website
-                                                        ? res.website.startsWith(
-                                                              'http://',
-                                                          ) ||
-                                                          res.website.startsWith(
-                                                              'https://',
-                                                          )
-                                                            ? res.website
-                                                            : `https://${res.website}`
-                                                        : `/restaurant/${id}`
-                                                }
-                                                target={
-                                                    res.website
-                                                        ? '_blank'
-                                                        : undefined
-                                                }
-                                                rel={
-                                                    res.website
-                                                        ? 'noopener noreferrer'
-                                                        : undefined
-                                                }
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedScrapedRestaurant(res);
+                                                    setIsScrapedModalOpen(true);
+                                                }}
                                                 className="w-full py-2.5 bg-white hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors shadow-sm block cursor-pointer"
                                             >
                                                 Request a Reservation
-                                            </a>
+                                            </button>
                                         ) : (
                                             <Link
                                                 href={
@@ -808,33 +795,16 @@ export default function RestaurantSearchView({
                                         </div>
 
                                         {isScraped ? (
-                                            <a
-                                                href={
-                                                    res.website
-                                                        ? res.website.startsWith(
-                                                              'http://',
-                                                          ) ||
-                                                          res.website.startsWith(
-                                                              'https://',
-                                                          )
-                                                            ? res.website
-                                                            : `https://${res.website}`
-                                                        : `/restaurant/${id}`
-                                                }
-                                                target={
-                                                    res.website
-                                                        ? '_blank'
-                                                        : undefined
-                                                }
-                                                rel={
-                                                    res.website
-                                                        ? 'noopener noreferrer'
-                                                        : undefined
-                                                }
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedScrapedRestaurant(res);
+                                                    setIsScrapedModalOpen(true);
+                                                }}
                                                 className="w-full py-2.5 bg-gray-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold text-center rounded-full transition-colors border border-gray-100 block cursor-pointer"
                                             >
                                                 Request a Reservation
-                                            </a>
+                                            </button>
                                         ) : (
                                             <Link
                                                 href={
@@ -859,6 +829,15 @@ export default function RestaurantSearchView({
 
             {/* 6. Footer */}
             <Footer />
+
+            <ScrapedReservationModal
+                restaurant={selectedScrapedRestaurant}
+                isOpen={isScrapedModalOpen}
+                onClose={() => {
+                    setIsScrapedModalOpen(false);
+                    setSelectedScrapedRestaurant(null);
+                }}
+            />
         </div>
     );
 }

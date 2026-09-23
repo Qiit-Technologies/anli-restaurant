@@ -25,6 +25,7 @@ export interface Restaurant {
     snapchatUrl?: string;
     youtubeUrl?: string;
     website?: string;
+    bookingUrl?: string;
     contactEmail?: string;
     contactPhone?: string;
     weekdayHours?: string;
@@ -118,6 +119,7 @@ export const restaurantService = {
                 description: scrapedData.description,
                 amenities: scrapedData.amenities,
                 website: scrapedData.website,
+                bookingUrl: scrapedData.bookingUrl,
                 contactEmail: scrapedData.contactEmail,
                 contactPhone: scrapedData.contactPhone,
                 twitterUrl: scrapedData.twitterUrl,
@@ -345,5 +347,60 @@ export const restaurantService = {
         }
 
         return null;
+    },
+
+    /**
+     * Sends an SMS & Email alert to a scraped restaurant when a diner clicks their booking platform URL
+     */
+    notifyScrapedRedirect: async (
+        id: number,
+        data: { customerName?: string; customerEmail?: string; customerPhone?: string },
+    ): Promise<{ success: boolean; message: string }> => {
+        try {
+            const response = await api.post(
+                `/hotels/scraped-restaurants/${id}/notify-redirect`,
+                data,
+            );
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error?.response?.data?.message || 'Failed to notify restaurant',
+            };
+        }
+    },
+
+    /**
+     * Collects reservation details for a scraped restaurant without a booking platform
+     * and sends an instant SMS & Email alert to the restaurant contact.
+     */
+    submitScrapedReservation: async (
+        id: number,
+        data: {
+            customerName: string;
+            customerEmail: string;
+            customerPhone: string;
+            date: string;
+            time: string;
+            guestCount: number;
+            specialRequests?: string;
+            tableType?: string;
+            reservationType?: string;
+        },
+    ): Promise<{ success: boolean; message: string; data?: any }> => {
+        try {
+            const response = await api.post(
+                `/hotels/scraped-restaurants/${id}/reservation`,
+                data,
+            );
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message:
+                    error?.response?.data?.message ||
+                    'Failed to submit reservation request',
+            };
+        }
     },
 };
